@@ -22,6 +22,11 @@ import spec_source as s
 _SPECIES_ORDER = ["monkey", "lion", "tiger", "elephant"]
 
 
+def _longest(items: list[dict]) -> dict:
+    m = max(items, key=lambda a: len(a["name"]))
+    return {"name": m["name"], "species": m["species"]}
+
+
 def _call(client, op: s.Op, args: dict):
     """Execute one operation against the TestClient and return its JSON body."""
     path = op.path
@@ -104,4 +109,20 @@ def build_tasks() -> list[Task]:
         ),
     )
 
-    return [t.materialize() for t in (t1, t2, t3, t4)]
+    t5 = Task(
+        name="T5_longest_name",
+        prompt="Which animal has the longest name? Give its name and species.",
+        calls=[(s.op_by("GET", "/animals"), {})],
+        code=(
+            "animals = zoo.list_all()\n"
+            'm = max(animals, key=lambda a: len(a["name"]))\n'
+            'result = {"name": m["name"], "species": m["species"]}'
+        ),
+        # The DSL can't express "argmax by len(name)" - a computed property. Best
+        # effort is to project the needed fields; the model still gets all rows and
+        # must compute the max itself. This is where the query approach hits its wall.
+        query={"resource": "animals", "select": ["name", "species"]},
+        reduce=lambda bodies: _longest(bodies[0]),
+    )
+
+    return [t.materialize() for t in (t1, t2, t3, t4, t5)]

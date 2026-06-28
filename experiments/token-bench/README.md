@@ -80,11 +80,13 @@ Output goes to stdout and `results.md`.
   schemas are forwarded: a real OpenAPI→MCP generator is at least as heavy as the
   hand-rolled baseline, so the baseline isn't a strawman — the compact/code wins
   hold against real MCP too.
-- `odata_query` ≈ `code_exec` on every task: a declarative query reaches the same
-  tiny bucket C as writing code, **without executing model-written code**. For tasks
-  the query DSL can express, OData/GraphQL-style queries already do what code does;
-  the gap (computations the DSL can't express) is where you extend the DSL or fall
-  back to `code_exec`.
+- `odata_query` ≈ `code_exec` on T1-T4: a declarative query reaches the same tiny
+  bucket C as writing code, **without executing model-written code**. For tasks the
+  query DSL can express, OData/GraphQL-style queries already do what code does.
+- T5 (`longest_name`) is the **gap**: argmax over a *computed* property (`len(name)`)
+  isn't expressible in the DSL, so `odata_query` can only project (C=561, all 50 rows)
+  while `code_exec` computes it server-side (C=13). The query approach degrades from
+  ~tied to clearly behind — extend the DSL (toward a language) or fall back to code.
 
 ## Files
 
@@ -93,7 +95,7 @@ Output goes to stdout and `results.md`.
 | `spec_source.py` | loads pet-zoo as a library; OpenAPI → normalized ops; seeded TestClient |
 | `tokens.py` | token counting (Anthropic endpoint, or tiktoken approx) |
 | `variants/` | the five interface generators |
-| `tasks.py` | T1 create / T2 count-females / T3 count-per-species / T4 peek-one, with real bodies + a declarative `query` each |
+| `tasks.py` | T1 create / T2 count-females / T3 count-per-species / T4 peek-one / T5 longest-name (DSL gap), with real bodies + a declarative `query` each |
 | `zoo_client.py` | generates the `code_exec` client + its doc from the IR (one source) |
 | `query_engine.py` | runs `odata_query` queries server-side (filter/select/top/count/aggregate + minimal create) |
 | `sandbox.py` + `sandbox_runner.py` | process-isolated execution of `code_exec` scripts |

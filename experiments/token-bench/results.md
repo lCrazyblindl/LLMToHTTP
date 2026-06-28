@@ -63,3 +63,14 @@ Buckets: **A** = definitions in context, **B** = the call(s), **C** = the result
 | numbered | 466 | 9 | 315 | 790 | +60% |
 | code_exec | 183 | 43 | 12 | 238 | +88% |
 | odata_query | 219 | 25 | 19 | 263 | +87% |
+
+## T5_longest_name - "Which animal has the longest name? Give its name and species."
+
+| variant | A | B call | C result | total | saved vs base |
+| --- | --- | --- | --- | --- | --- |
+| openapi_full | 1637 | 11 | 1161 | 2809 | +0% |
+| mcp_fastmcp | 1689 | 15 | 1161 | 2865 | -2% |
+| compact_sig | 401 | 11 | 1161 | 1573 | +44% |
+| numbered | 466 | 9 | 1161 | 1636 | +42% |
+| code_exec | 183 | 37 | 13 | 233 | +92% |
+| odata_query | 219 | 11 | 561 | 791 | +72% |
