@@ -26,8 +26,8 @@ import zoo_client  # noqa: E402
 
 _SAFE_NAMES = [
     "abs", "all", "any", "bool", "dict", "divmod", "enumerate", "filter", "float",
-    "frozenset", "int", "len", "list", "map", "max", "min", "range", "reversed",
-    "round", "set", "sorted", "str", "sum", "tuple", "zip",
+    "frozenset", "int", "iter", "len", "list", "map", "max", "min", "next", "range",
+    "reversed", "round", "set", "sorted", "str", "sum", "tuple", "zip",
 ]
 SAFE_BUILTINS = {n: getattr(builtins, n) for n in _SAFE_NAMES if hasattr(builtins, n)}
 

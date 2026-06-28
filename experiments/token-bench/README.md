@@ -38,6 +38,7 @@ All variants are generated from one source of truth: `pet-zoo`'s auto OpenAPI sp
 | `compact_sig` | human-readable names, but dense TS-like signatures + one shared `Animal` type |
 | `numbered` | the user's idea: a `number → endpoint` dictionary; model calls by number |
 | `code_exec` | one `run_python` tool + a compact client doc; model writes one script, only the small final value returns |
+| `odata_query` | one `query` tool + a compact query DSL; the shim runs it server-side (filter/select/top/count/aggregate) and returns only the result — the declarative alternative to `code_exec`, no code execution |
 
 `numbered`'s dictionary is counted **in full** in bucket A — it has to spell out
 every argument (the model needs them to call correctly), so the comparison is
@@ -79,6 +80,11 @@ Output goes to stdout and `results.md`.
   schemas are forwarded: a real OpenAPI→MCP generator is at least as heavy as the
   hand-rolled baseline, so the baseline isn't a strawman — the compact/code wins
   hold against real MCP too.
+- `odata_query` ≈ `code_exec` on every task: a declarative query reaches the same
+  tiny bucket C as writing code, **without executing model-written code**. For tasks
+  the query DSL can express, OData/GraphQL-style queries already do what code does;
+  the gap (computations the DSL can't express) is where you extend the DSL or fall
+  back to `code_exec`.
 
 ## Files
 
@@ -87,8 +93,9 @@ Output goes to stdout and `results.md`.
 | `spec_source.py` | loads pet-zoo as a library; OpenAPI → normalized ops; seeded TestClient |
 | `tokens.py` | token counting (Anthropic endpoint, or tiktoken approx) |
 | `variants/` | the five interface generators |
-| `tasks.py` | T1 create / T2 count-females / T3 count-per-species, with real bodies |
+| `tasks.py` | T1 create / T2 count-females / T3 count-per-species / T4 peek-one, with real bodies + a declarative `query` each |
 | `zoo_client.py` | generates the `code_exec` client + its doc from the IR (one source) |
+| `query_engine.py` | runs `odata_query` queries server-side (filter/select/top/count/aggregate + minimal create) |
 | `sandbox.py` + `sandbox_runner.py` | process-isolated execution of `code_exec` scripts |
 | `run_bench.py` | orchestrates A/B/C accounting, prints tables, writes `results.md` |
 | `live_runs.py` | optional real-Claude Layer 2 |

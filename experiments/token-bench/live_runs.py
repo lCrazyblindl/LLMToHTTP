@@ -18,6 +18,7 @@ from __future__ import annotations
 
 import os
 
+import query_engine
 import sandbox
 import spec_source as s
 import variants as V
@@ -36,7 +37,7 @@ _BY_NUMBER = {str(i + 1): op for i, op in enumerate(_OPS)}
 def _tools_for(variant: V.Variant) -> list[dict]:
     """What we register with the API for a variant. Compact/numbered keep their
     descriptions in the system manifest, so their tool schemas are bare."""
-    if variant.name in ("openapi_full", "mcp_fastmcp", "code_exec"):
+    if variant.name in ("openapi_full", "mcp_fastmcp", "code_exec", "odata_query"):
         return variant.definitions().tools
     empty = {"type": "object"}
     if variant.name == "numbered":
@@ -47,6 +48,8 @@ def _tools_for(variant: V.Variant) -> list[dict]:
 def _exec_tool(variant: V.Variant, name: str, tool_input: dict, client) -> str:
     if name == "run_python":
         return dumps(sandbox.run_in_sandbox(tool_input.get("code", "")))
+    if name == "query":
+        return dumps(query_engine.run_query(client, tool_input.get("q", {})))
     if variant.name == "numbered":
         op = _BY_NUMBER[name]
     elif variant.name == "mcp_fastmcp":
