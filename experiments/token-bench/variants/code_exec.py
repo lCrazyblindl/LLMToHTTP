@@ -10,17 +10,9 @@ body.
 
 from __future__ import annotations
 
-from .base import Definitions, Variant
+import zoo_client
 
-_CLIENT_DOC = """\
-# Tool: run_python(code). A `zoo` client is in scope. Put the answer in `result`.
-zoo.list(species) -> Animal[]      # species: "monkey"|"lion"|"tiger"|"elephant"
-zoo.list_all() -> Animal[]
-zoo.get(species, id) -> Animal
-zoo.create(species, {name, age, gender}) -> Animal
-zoo.update(species, id, {name, age, gender}) -> Animal
-zoo.delete(species, id) -> None
-# Animal = {id, species, name, age, gender}"""
+from .base import Definitions, Variant
 
 _RUN_PYTHON_TOOL = {
     "name": "run_python",
@@ -37,7 +29,8 @@ class CodeExec(Variant):
     name = "code_exec"
 
     def definitions(self) -> Definitions:
-        return Definitions(tools=[_RUN_PYTHON_TOOL], text=_CLIENT_DOC)
+        # Client doc is generated from the same IR the sandbox runs (no drift).
+        return Definitions(tools=[_RUN_PYTHON_TOOL], text=zoo_client.client_doc())
 
     def encode_calls(self, task) -> str:
         # One script for the whole task (bucket B is the code the model writes).

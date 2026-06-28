@@ -9,15 +9,16 @@ tokens for wrong answers - the main risk of the `numbered` scheme.
 Off by default (run_bench.py --live). Needs ANTHROPIC_API_KEY and spends model
 tokens.
 
-SECURITY NOTE: for `code_exec` this executes model-written Python locally against
-the throwaway pet-zoo TestClient via a tiny `zoo` facade. Only run it on this toy
-sandbox, on a machine where that is acceptable.
+SECURITY NOTE: for `code_exec` this executes model-written Python in a subprocess
+sandbox (sandbox.py) with a timeout and restricted builtins, against a throwaway
+pet-zoo. Soft isolation - fine for this toy, not a production boundary.
 """
 
 from __future__ import annotations
 
 import os
 
+import sandbox
 import spec_source as s
 import variants as V
 from tasks import Task, _call
@@ -32,31 +33,6 @@ _BY_OPNAME = {op.name: op for op in _OPS}
 _BY_NUMBER = {str(i + 1): op for i, op in enumerate(_OPS)}
 
 
-class Zoo:
-    """Minimal sync client `code_exec` scripts call."""
-
-    def __init__(self, client):
-        self._c = client
-
-    def list(self, species):
-        return self._c.get(f"/{species}s").json()
-
-    def list_all(self):
-        return self._c.get("/animals").json()
-
-    def get(self, species, id):
-        return self._c.get(f"/{species}s/{id}").json()
-
-    def create(self, species, body):
-        return self._c.post(f"/{species}s", json=body).json()
-
-    def update(self, species, id, body):
-        return self._c.put(f"/{species}s/{id}", json=body).json()
-
-    def delete(self, species, id):
-        self._c.delete(f"/{species}s/{id}")
-
-
 def _tools_for(variant: V.Variant) -> list[dict]:
     """What we register with the API for a variant. Compact/numbered keep their
     descriptions in the system manifest, so their tool schemas are bare."""
@@ -68,14 +44,9 @@ def _tools_for(variant: V.Variant) -> list[dict]:
     return [{"name": op.name, "description": "", "input_schema": empty} for op in _OPS]
 
 
-def _exec_tool(variant: V.Variant, name: str, tool_input: dict, client, zoo) -> str:
+def _exec_tool(variant: V.Variant, name: str, tool_input: dict, client) -> str:
     if name == "run_python":
-        ns = {"zoo": zoo}
-        try:
-            exec(tool_input.get("code", ""), ns)  # noqa: S102 - see module security note
-            return dumps({"ok": True, "result": ns.get("result")})
-        except Exception as exc:  # noqa: BLE001
-            return dumps({"ok": False, "error": repr(exc)})
+        return dumps(sandbox.run_in_sandbox(tool_input.get("code", "")))
     if variant.name == "numbered":
         op = _BY_NUMBER[name]
     elif variant.name == "mcp_fastmcp":
@@ -94,7 +65,6 @@ def _expected(task: Task) -> list[str]:
 
 def _run_one(anthropic_client, variant: V.Variant, task: Task) -> dict:
     client = s.reset_and_seed()
-    zoo = Zoo(client)
     system = variant.definitions().text or "Use the provided tools to answer."
     tools = _tools_for(variant)
     messages: list[dict] = [{"role": "user", "content": task.prompt}]
@@ -115,7 +85,7 @@ def _run_one(anthropic_client, variant: V.Variant, task: Task) -> dict:
 
         results = []
         for tu in tool_uses:
-            out = _exec_tool(variant, tu.name, tu.input or {}, client, zoo)
+            out = _exec_tool(variant, tu.name, tu.input or {}, client)
             results.append({"type": "tool_result", "tool_use_id": tu.id, "content": out})
         messages.append({"role": "user", "content": results})
 

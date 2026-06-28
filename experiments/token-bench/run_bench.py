@@ -60,14 +60,42 @@ def pct(part: int, whole: int) -> str:
     return f"{100 * (whole - part) / whole:+.0f}%"
 
 
+def _check_code(tasks) -> None:
+    """Run each task's code_exec script in the sandbox and assert the real result
+    equals the expected answer. Verifies the generated client + scripts actually
+    work end-to-end, offline (no API key)."""
+    import sandbox
+
+    print("code_exec sandbox self-check (real execution, no API key):\n")
+    all_ok = True
+    for task in tasks:
+        out = sandbox.run_in_sandbox(task.code)
+        ok = bool(out.get("ok")) and out.get("result") == task.final_value
+        all_ok &= ok
+        line = f"  {'PASS' if ok else 'FAIL'}  {task.name}: result={out.get('result')!r}"
+        if not ok:
+            line += f"  expected={task.final_value!r} err={out.get('error')!r}"
+        print(line)
+    print("\n" + ("ALL PASS" if all_ok else "SOME FAILED"))
+    if not all_ok:
+        raise SystemExit(1)
+
+
 def main() -> None:
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--live", action="store_true", help="also run each variant through Claude (needs key)")
+    ap.add_argument("--check-code", action="store_true",
+                    help="run each task's code_exec script in the sandbox and assert it returns the right answer")
     ap.add_argument("--out", default=os.path.join(HERE, "results.md"))
     args = ap.parse_args()
 
-    backend = tk.backend_name()
     tasks = build_tasks()
+
+    if args.check_code:
+        _check_code(tasks)
+        return
+
+    backend = tk.backend_name()
     a_cost = {v.name: bucket_a(v) for v in V.ALL}
     base = V.ALL[0].name  # openapi_full is the baseline
 

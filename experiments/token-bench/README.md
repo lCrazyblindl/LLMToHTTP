@@ -55,11 +55,15 @@ python experiments/token-bench/run_bench.py               # offline, approx toke
   measured through the real `tools=` parameter. Without a key it falls back to a
   GPT-style BPE (`tiktoken`) — absolute numbers are approximate but the **relative
   ordering** (the whole point) holds.
+- **Code self-check** (`--check-code`, no key): runs each task's `code_exec` script
+  in the real sandbox and asserts it returns the right answer — proves the generated
+  client + scripts actually work end-to-end, not just that their tokens were counted.
 - **Optional Layer 2** (`--live`, needs key, spends tokens): actually runs each
   variant through Claude on the tasks and reports total tokens + whether the answer
   was correct — a check that compression doesn't trade tokens for wrong answers.
-  Note: `code_exec` executes model-written Python locally against the throwaway
-  TestClient; only run on this sandbox.
+  `code_exec` runs the model's Python in a subprocess sandbox (`sandbox.py`) with a
+  timeout and restricted builtins. Soft isolation — fine for this toy, not a
+  production boundary.
 
 Output goes to stdout and `results.md`.
 
@@ -82,7 +86,9 @@ Output goes to stdout and `results.md`.
 | --- | --- |
 | `spec_source.py` | loads pet-zoo as a library; OpenAPI → normalized ops; seeded TestClient |
 | `tokens.py` | token counting (Anthropic endpoint, or tiktoken approx) |
-| `variants/` | the four interface generators |
+| `variants/` | the five interface generators |
 | `tasks.py` | T1 create / T2 count-females / T3 count-per-species, with real bodies |
+| `zoo_client.py` | generates the `code_exec` client + its doc from the IR (one source) |
+| `sandbox.py` + `sandbox_runner.py` | process-isolated execution of `code_exec` scripts |
 | `run_bench.py` | orchestrates A/B/C accounting, prints tables, writes `results.md` |
 | `live_runs.py` | optional real-Claude Layer 2 |
