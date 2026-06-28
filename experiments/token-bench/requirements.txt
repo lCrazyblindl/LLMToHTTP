@@ -1,0 +1,6 @@
+# Benchmark deps. pet-zoo is imported as a library, so it also needs its own
+# deps (../../pet-zoo/requirements.txt) - fastapi covers them here too.
+fastapi          # the pet-zoo app + TestClient
+httpx            # required by fastapi.testclient.TestClient
+tiktoken         # zero-setup approximate tokenizer (fallback backend)
+anthropic        # faithful count_tokens backend + --live runs
