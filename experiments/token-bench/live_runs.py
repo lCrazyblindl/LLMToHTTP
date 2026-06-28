@@ -60,9 +60,7 @@ class Zoo:
 def _tools_for(variant: V.Variant) -> list[dict]:
     """What we register with the API for a variant. Compact/numbered keep their
     descriptions in the system manifest, so their tool schemas are bare."""
-    if variant.name == "openapi_full":
-        return variant.definitions().tools
-    if variant.name == "code_exec":
+    if variant.name in ("openapi_full", "mcp_fastmcp", "code_exec"):
         return variant.definitions().tools
     empty = {"type": "object"}
     if variant.name == "numbered":
@@ -78,7 +76,12 @@ def _exec_tool(variant: V.Variant, name: str, tool_input: dict, client, zoo) -> 
             return dumps({"ok": True, "result": ns.get("result")})
         except Exception as exc:  # noqa: BLE001
             return dumps({"ok": False, "error": repr(exc)})
-    op = _BY_NUMBER[name] if variant.name == "numbered" else _BY_OPNAME[name]
+    if variant.name == "numbered":
+        op = _BY_NUMBER[name]
+    elif variant.name == "mcp_fastmcp":
+        op = variant.op_for_name(name)
+    else:
+        op = _BY_OPNAME[name]
     return dumps(_call(client, op, tool_input))
 
 

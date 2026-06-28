@@ -5,10 +5,11 @@ from __future__ import annotations
 from .base import Definitions, PerCallVariant, Variant
 from .code_exec import CodeExec
 from .compact_sig import CompactSig
+from .mcp_fastmcp import McpFastMCP
 from .numbered import Numbered
 from .openapi_full import OpenApiFull
 
-ALL: list[Variant] = [OpenApiFull(), CompactSig(), Numbered(), CodeExec()]
+ALL: list[Variant] = [OpenApiFull(), McpFastMCP(), CompactSig(), Numbered(), CodeExec()]
 BY_NAME = {v.name: v for v in ALL}
 
 __all__ = ["ALL", "BY_NAME", "Variant", "PerCallVariant", "Definitions"]

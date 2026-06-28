@@ -13,6 +13,8 @@ Buckets: **A** = definitions in context, **B** = the call(s), **C** = the result
 | variant | A tokens | saved vs base | form |
 | --- | --- | --- | --- |
 | openapi_full | 1637 | +0% | 21 tool(s) |
+| mcp_fastmcp | 1689 | -3% | 21 tool(s) |
+| mcp_fastmcp (+outputSchema) | 3762 | -130% | 21 tool(s) + manifest text |
 | compact_sig | 401 | +76% | manifest text |
 | numbered | 466 | +72% | manifest text |
 | code_exec | 183 | +89% | 1 tool(s) + manifest text |
@@ -22,6 +24,7 @@ Buckets: **A** = definitions in context, **B** = the call(s), **C** = the result
 | variant | A | B call | C result | total | saved vs base |
 | --- | --- | --- | --- | --- | --- |
 | openapi_full | 1637 | 22 | 24 | 1683 | +0% |
+| mcp_fastmcp | 1689 | 25 | 24 | 1738 | -3% |
 | compact_sig | 401 | 22 | 24 | 447 | +73% |
 | numbered | 466 | 20 | 24 | 510 | +70% |
 | code_exec | 183 | 26 | 22 | 231 | +86% |
@@ -31,6 +34,7 @@ Buckets: **A** = definitions in context, **B** = the call(s), **C** = the result
 | variant | A | B call | C result | total | saved vs base |
 | --- | --- | --- | --- | --- | --- |
 | openapi_full | 1637 | 11 | 1161 | 2809 | +0% |
+| mcp_fastmcp | 1689 | 15 | 1161 | 2865 | -2% |
 | compact_sig | 401 | 11 | 1161 | 1573 | +44% |
 | numbered | 466 | 9 | 1161 | 1636 | +42% |
 | code_exec | 183 | 28 | 6 | 217 | +92% |
@@ -40,6 +44,7 @@ Buckets: **A** = definitions in context, **B** = the call(s), **C** = the result
 | variant | A | B call | C result | total | saved vs base |
 | --- | --- | --- | --- | --- | --- |
 | openapi_full | 1637 | 44 | 1167 | 2848 | +0% |
+| mcp_fastmcp | 1689 | 56 | 1167 | 2912 | -2% |
 | compact_sig | 401 | 44 | 1167 | 1612 | +43% |
 | numbered | 466 | 36 | 1167 | 1669 | +41% |
 | code_exec | 183 | 28 | 19 | 230 | +92% |

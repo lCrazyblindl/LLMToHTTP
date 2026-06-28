@@ -4,3 +4,4 @@ fastapi          # the pet-zoo app + TestClient
 httpx            # required by fastapi.testclient.TestClient
 tiktoken         # zero-setup approximate tokenizer (fallback backend)
 anthropic        # faithful count_tokens backend + --live runs
+fastmcp          # real MCP baseline (mcp_fastmcp variant)

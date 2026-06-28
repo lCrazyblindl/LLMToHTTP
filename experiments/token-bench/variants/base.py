@@ -43,6 +43,12 @@ class Variant:
     def result_payload(self, task):
         raise NotImplementedError
 
+    def extra_definitions(self) -> dict[str, Definitions]:
+        """Optional extra rows for the bucket-A table, keyed by label. Used to
+        show alternative accountings of the same variant (e.g. a real MCP server
+        with output schemas included). Empty by default."""
+        return {}
+
 
 class PerCallVariant(Variant):
     """Variants that invoke one tool per HTTP call. They differ only in how the

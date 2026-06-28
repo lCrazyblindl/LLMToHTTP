@@ -30,13 +30,15 @@ from variants.base import dumps  # noqa: E402
 HERE = os.path.dirname(os.path.abspath(__file__))
 
 
-def bucket_a(variant: V.Variant) -> int:
-    d = variant.definitions()
+def a_of(d: V.Definitions) -> int:
     return tk.count_tools(d.tools) + tk.count(d.text)
 
 
-def definitions_form(variant: V.Variant) -> str:
-    d = variant.definitions()
+def bucket_a(variant: V.Variant) -> int:
+    return a_of(variant.definitions())
+
+
+def form_of(d: V.Definitions) -> str:
     parts = []
     if d.tools:
         parts.append(f"{len(d.tools)} tool(s)")
@@ -86,10 +88,12 @@ def main() -> None:
     blocks.append("\n".join(header))
 
     # --- Table 1: the menu cost (bucket A), task-independent --------------------
-    a_rows = [
-        [v.name, a_cost[v.name], pct(a_cost[v.name], a_cost[base]), definitions_form(v)]
-        for v in V.ALL
-    ]
+    a_rows = []
+    for v in V.ALL:
+        a_rows.append([v.name, a_cost[v.name], pct(a_cost[v.name], a_cost[base]), form_of(v.definitions())])
+        for label, d in v.extra_definitions().items():
+            ax = a_of(d)
+            a_rows.append([label, ax, pct(ax, a_cost[base]), form_of(d)])
     blocks.append("## Bucket A - menu cost (paid ~once per session)\n\n"
                   + md_table(["variant", "A tokens", "saved vs base", "form"], a_rows))
 
