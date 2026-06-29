@@ -1,9 +1,13 @@
-# LLM-API Profile (LAP) — Draft 0.1
+# LLM-API Profile (LAP) — v1.0
 
-**Status:** draft / hypothesis. Every rule is backed by a measurement from
-[`experiments/token-bench`](../experiments/token-bench/README.md) (currently
-tiktoken-approx — rerun with a real tokenizer before quoting numbers). Note: LAP
-optimizes **token cost**; its effect on **task success** is not yet measured.
+**Status:** v1.0 — the rules and conformance levels are stable. Each rule is backed by
+a measurement from [`experiments/token-bench`](../experiments/token-bench/README.md)
+(currently tiktoken-approx; faithful Anthropic counts engage automatically with an API
+key). Honest scope: LAP optimizes **token cost** (measured — e.g. on the live Swagger
+Petstore a real MCP menu is 2226 tokens vs 415 for compact signatures); its effect on
+**task success** is not yet empirically validated (the live check is ready but unrun).
+**Tooling:** `python -m lap.score <openapi>` measures any API's menu cost;
+`python -m lap.lint <openapi>` flags violations of the rules below.
 
 **Purpose:** an opinionated convention for exposing an HTTP API so an LLM uses it
 with the fewest tokens — *without inventing a new wire format*.
@@ -77,11 +81,13 @@ A provider adopts the highest level worth its task distribution.
 
 ## Conformance & scoring
 
-Conformance is **measured, not asserted**. Run
-[`token-bench`](../experiments/token-bench/README.md) against the API and report
-buckets A/B/C per representative task; the LAP "score" is that profile versus the
-naive OpenAPI→tools baseline. Use real-tokenizer mode (`ANTHROPIC_API_KEY`) for
-quotable numbers, and `--live` to check that the token savings don't cost accuracy.
+Conformance is **measured, not asserted**. For a quick check on any spec,
+`python -m lap.score <openapi>` reports the menu (bucket A) cost (incl. a real-MCP
+baseline) and `python -m lap.lint <openapi>` flags rule violations (D3 / R1 / R2 / R3 /
+W1 / E1 / A1). For a full A/B/C run with tasks, use
+[`token-bench`](../experiments/token-bench/README.md); the LAP "score" is that profile
+versus the naive OpenAPI→tools baseline. Use real-tokenizer mode (`ANTHROPIC_API_KEY`)
+for quotable numbers, and `--live` to check that the savings don't cost accuracy.
 
 ## Non-goals (explicitly out of scope)
 

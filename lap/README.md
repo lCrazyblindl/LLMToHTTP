@@ -11,6 +11,7 @@ agentic-web ecosystem lacks (see [`../docs/LANDSCAPE.md`](../docs/LANDSCAPE.md))
 # deps (or reuse the repo .venv): httpx, tiktoken, anthropic
 python -m lap.score lap/examples/bookstore.openapi.json
 python -m lap.score https://petstore3.swagger.io/api/v3/openapi.json
+python -m lap.lint  https://petstore3.swagger.io/api/v3/openapi.json   # flag LAP rule violations
 ```
 
 Example output:
@@ -56,4 +57,5 @@ behind the compact form are the [LAP profile](../profile/llm-api-profile.md).
 | `mcp_form.py` | real-MCP baseline via `FastMCP.from_openapi` (optional; `--no-mcp` to skip) |
 | `tokens.py` | token counting (Anthropic endpoint, or tiktoken approx) |
 | `score.py` | the `lap score` CLI |
+| `lint.py` | the `lap lint` CLI — checks a spec against the LAP profile rules (D3/R1/R2/R3/W1/E1/A1) |
 | `examples/` | sample specs (e.g. a non-pet-zoo Bookstore API) |

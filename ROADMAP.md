@@ -36,23 +36,21 @@ built for stop/resume, one bounded session per stage.
   menu (+ output-schema figure). Verified end-to-end on the **live Swagger Petstore**
   (19 ops): real MCP 2226 (3844 w/ output schemas) vs compact 415 — the toy finding
   holds in the wild (real MCP is heavier than the naive baseline).
-- [ ] **▶ Stage 4 — Faithful tokens + success check.** Default to Anthropic
-  `count_tokens` when `ANTHROPIC_API_KEY` is set; run `--live` for pass/fail.
-  _Verify: a task set has faithful token + success numbers._
-  **Prep done (no key in env):** the live check now defaults to a cheap model
-  (`claude-haiku-4-5`) + a `--quick` subset to bound spend; both token-bench and `lap`
-  use faithful `count_tokens` automatically when a key is present. **Remaining (needs a
-  key):** set `ANTHROPIC_API_KEY`, then `python experiments/token-bench/run_bench.py
-  --live --quick` for real pass/fail, and re-run `lap score` for faithful numbers.
-- [ ] **Stage 5 — LAP profile v1.0 + linter.** Promote `profile/llm-api-profile.md`
-  to v1 (measured guidance for MCP/NLWeb/OpenAPI authors); add `lap lint` checking
-  L1–L4 with measured citations. _Verify: lint flags real violations._
-- [ ] **Stage 6 — Package & share.** Quickstart, examples, PyPI/GitHub release, short
+- [x] **Stage 4 — Faithful tokens + success check (mechanism only).** The live check
+  defaults to a cheap model (`claude-haiku-4-5`) + a `--quick` subset to bound spend;
+  both token-bench and `lap` use faithful `count_tokens` automatically when a key is set.
+  **Closed by choice:** no API key available (Pro ≠ API), so faithful/live numbers were
+  skipped; the budget-safe mechanism is committed and runs anytime via
+  `ANTHROPIC_API_KEY=... python experiments/token-bench/run_bench.py --live --quick`.
+- [x] **Stage 5 — LAP profile v1.0 + linter.** Done: profile promoted to v1.0;
+  `lap/lint.py` + `python -m lap.lint <openapi>` flags D3 / R1 / R2 / R3 / W1 / E1 / A1
+  with rule citations — verified on the live Swagger Petstore (6 warnings, 10 suggestions).
+- [ ] **▶ Stage 6 — Package & share.** Quickstart, examples, PyPI/GitHub release, short
   writeup. _Verify: a stranger can `pip install` and score their API._
 
 ## Status
 
-**▶ Next: Stage 4** (Faithful tokens + success check). Stages 0–3 done.
+**▶ Next: Stage 6** (Package & share). Stages 0–5 done (Stage 4 = budget-safe mechanism; live/faithful numbers skipped, no API key).
 
 ## Sources captured for Stage 1 (so it can be done without re-searching)
 
