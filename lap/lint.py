@@ -29,7 +29,7 @@ class Finding:
 
 
 def _query_names(op: ir.Op) -> set[str]:
-    return {p["name"].lower() for p in op.raw.get("parameters", []) if p.get("in") == "query"}
+    return {p["name"].lower() for p in op.params if p.get("in") == "query"}
 
 
 def _error_codes(op: ir.Op) -> list[str]:

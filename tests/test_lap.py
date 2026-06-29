@@ -84,3 +84,37 @@ def test_score_orders_compact_below_full(spec):
     assert set(a) == {"openapi_full", "compact_sig", "numbered"}
     assert a["compact_sig"] < a["openapi_full"]
     assert a["numbered"] < a["openapi_full"]
+
+
+# --- robustness on gnarly OpenAPI 3.1 constructs (Stage 8) -------------------
+GNARLY_PATH = Path(__file__).resolve().parents[1] / "lap" / "examples" / "gnarly.openapi.json"
+
+
+@pytest.fixture(scope="module")
+def gnarly() -> dict:
+    return ir.load_spec(str(GNARLY_PATH))
+
+
+def test_gnarly_operations_and_refs(gnarly):
+    ops = {op.name: op for op in ir.operations(gnarly)}
+    assert set(ops) == {"listPets", "createPet", "getPet"}
+    assert ops["getPet"].path_params == [("petId", "int")]  # parameter via $ref
+    assert ops["listPets"].returns == "Pet[]"
+    assert {"name", "owner"} <= {f[0] for f in ops["createPet"].body_fields}  # requestBody via $ref
+
+
+def test_gnarly_allof_merge(gnarly):
+    fields = {f[0] for f in ir._schema_fields(gnarly, {"$ref": "#/components/schemas/Pet"})}
+    assert {"id", "name", "status"} <= fields  # allOf members merged
+
+
+def test_gnarly_31_and_external_refs(gnarly):
+    assert ir._type_str(gnarly, {"type": ["integer", "null"]}) == "int|null"  # 3.1 nullable
+    assert ir._type_str(gnarly, {"$ref": "https://x/ext.json#/Owner"}) == "Owner"  # external, no crash
+
+
+def test_gnarly_score_and_lint_run(gnarly):
+    assert set(score_mod.score(gnarly)) == {"openapi_full", "compact_sig", "numbered"}
+    findings = lint.lint(gnarly)
+    # GET /pets declares `limit` (pagination via a path-item-level param) -> no R3 there
+    assert not any(f.rule == "R3" and f.where == "GET /pets" for f in findings)

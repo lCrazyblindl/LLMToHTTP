@@ -58,11 +58,12 @@ validation. Each is one bounded session. `[no key]` = doable without an API key.
 - [x] **Stage 7 — Tests + CI + LICENSE.** Done: `tests/test_lap.py` (8 tests, green) over
   IR / menu / lint / tokens / score on the bookstore spec; `.github/workflows/ci.yml` (pytest +
   smoke `lap lint`); MIT `LICENSE`; `dev` extra + CI badge in README.  `[no key]`
-- [ ] **▶ Stage 8 — Robustness on real specs.** Handle `allOf`/`oneOf`/`anyOf`, `$ref` in
-  parameters, path-item-level `parameters`, and external `$ref` gracefully (skip/warn, no
-  crash); OpenAPI 3.1 basics; tighten linter keyword sets. _Done: score+lint a gnarlier real
-  spec (e.g. a GitHub/Stripe subset) without crashing + a regression test._  `[no key]`
-- [ ] **Stage 9 — Estimate bucket C from response schemas.** From a response schema + an
+- [x] **Stage 8 — Robustness on real specs.** Done: rewrote `lap/openapi_ir.py` to handle
+  `allOf`/`oneOf`/`anyOf`, `$ref` in params/requestBodies/responses, path-item-level
+  parameters, OpenAPI 3.1 `type` lists, external `$ref`s (left intact), and YAML input. Added
+  `lap/examples/gnarly.openapi.json` (3.1) + 4 regression tests (now 12 passing); live Petstore
+  unregressed.  `[no key]`
+- [ ] **▶ Stage 9 — Estimate bucket C from response schemas.** From a response schema + an
   assumed page size, estimate per-response token cost; surface it (flag heavy endpoints).
   _Done: `lap score` shows an estimated C for collection endpoints, verified on Petstore._  `[no key]`
 - [ ] **Stage 10 — `--json` output + CI gate.** Machine-readable `score`/`lint`; threshold
@@ -85,10 +86,10 @@ profile "L0 be-discoverable" rule (llms.txt / .well-known / NLWeb), CONTRIBUTING
 
 ## Status
 
-**v0.1 complete (stages 0–6).** On **v0.2** — **▶ Stage 8** (Robustness on real specs).
-Stage 7 done (tests + CI + LICENSE). The live-key validation is intentionally **last**
-(Stage 13). Say "continue LAP" to run the next stage. (v0.1 owner-only follow-up: publish to
-PyPI + a GitHub release.)
+**v0.1 complete (stages 0–6).** On **v0.2** — **▶ Stage 9** (Estimate bucket C from response
+schemas). Stages 7–8 done (tests/CI/LICENSE; real-spec robustness). The live-key validation is
+intentionally **last** (Stage 13). Say "continue LAP" to run the next stage. (v0.1 owner-only
+follow-up: publish to PyPI + a GitHub release.)
 
 ## Sources captured for Stage 1 (so it can be done without re-searching)
 

@@ -1,16 +1,17 @@
 """Generic OpenAPI -> normalized operations.
 
-The reusable, app-agnostic version of the parsing proven in
-`experiments/token-bench/spec_source.py`: it takes any OpenAPI spec (no app
-import, no server) and yields a normalized operation list that the menu
-generators render. Loads a spec from a file path or an http(s) URL.
+The reusable, app-agnostic parsing the `lap` toolkit builds on. Takes any OpenAPI
+spec (file path or http[s] URL; JSON or YAML) and yields a normalized operation
+list. Hardened for the constructs real specs use: `allOf`/`oneOf`/`anyOf`, `$ref`
+in parameters / requestBodies / responses, path-item-level parameters, OpenAPI 3.1
+`type: [..., "null"]`, and external `$ref`s (left intact, never crash).
 """
 
 from __future__ import annotations
 
 import copy
 import json
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 
 def load_spec(source: str) -> dict:
@@ -19,48 +20,94 @@ def load_spec(source: str) -> dict:
 
         resp = httpx.get(source, follow_redirects=True, timeout=30)
         resp.raise_for_status()
-        return resp.json()
+        return _parse(resp.text)
     with open(source, "r", encoding="utf-8") as f:
-        return json.load(f)
+        return _parse(f.read())
+
+
+def _parse(text: str) -> dict:
+    try:
+        return json.loads(text)
+    except json.JSONDecodeError:
+        import yaml  # optional; only needed for YAML specs
+
+        return yaml.safe_load(text)
 
 
 @dataclass
 class Op:
-    method: str  # GET / POST / PUT / PATCH / DELETE
+    method: str
     path: str
     summary: str
-    path_params: list[tuple[str, str]]  # [(name, type_str)]
-    body_fields: list[tuple[str, str, str]]  # [(name, type_str, constraint_str)]
-    returns: str  # e.g. 'Book' | 'Book[]' | 'void'
-    name: str  # tool name (operationId if present, else synthesized + deduped)
-    raw: dict  # raw OpenAPI operation object
+    path_params: list[tuple[str, str]]
+    body_fields: list[tuple[str, str, str]]
+    returns: str
+    name: str
+    params: list[dict]  # merged + deref'd parameter objects (path-item + operation)
+    raw: dict = field(default_factory=dict)
+
+
+# --- $ref handling (local-only; external/broken refs degrade gracefully) -----
+def _local(ref) -> bool:
+    return isinstance(ref, str) and ref.startswith("#/")
 
 
 def _resolve_ref(spec: dict, ref: str) -> dict:
-    node: dict = spec
-    for part in ref.lstrip("#/").split("/"):
-        node = node[part]
-    return node
+    if not _local(ref):
+        return {}
+    node = spec
+    try:
+        for part in ref.lstrip("#/").split("/"):
+            node = node[part]
+    except (KeyError, TypeError, IndexError):
+        return {}
+    return node if isinstance(node, dict) else {}
+
+
+def _deref(spec: dict, node):
+    """One-level deref of a possible {$ref}. External/broken refs -> the node's
+    non-ref siblings only (never crash)."""
+    if isinstance(node, dict) and "$ref" in node:
+        resolved = _resolve_ref(spec, node["$ref"])
+        siblings = {k: v for k, v in node.items() if k != "$ref"}
+        return {**resolved, **siblings}
+    return node if isinstance(node, dict) else {}
+
+
+# --- type / field rendering --------------------------------------------------
+_SCALARS = {"integer": "int", "number": "float", "boolean": "bool", "string": "string", "null": "null"}
+
+
+def _scalar(t) -> str:
+    return _SCALARS.get(t, str(t))
 
 
 def _num(x) -> str:
     return str(int(x)) if isinstance(x, float) and x.is_integer() else str(x)
 
 
-def _type_str(spec: dict, schema: dict) -> str:
+def _type_str(spec: dict, schema) -> str:
+    if not isinstance(schema, dict):
+        return "any"
     if "$ref" in schema:
-        target = _resolve_ref(spec, schema["$ref"])
-        if "enum" in target:
-            return "|".join(f'"{v}"' for v in target["enum"])
-        # name the referenced object type rather than inlining it
-        return schema["$ref"].rsplit("/", 1)[-1]
+        if _local(schema["$ref"]):
+            target = _resolve_ref(spec, schema["$ref"])
+            if "enum" in target:
+                return "|".join(f'"{v}"' for v in target["enum"])
+        return schema["$ref"].rsplit("/", 1)[-1] or "ref"  # local object or external -> use name
+    for comb in ("oneOf", "anyOf"):
+        if comb in schema:
+            return "|".join(_type_str(spec, m) for m in schema[comb]) or "any"
+    if "allOf" in schema:
+        return "object"
     if "enum" in schema:
         return "|".join(f'"{v}"' for v in schema["enum"])
     t = schema.get("type", "any")
+    if isinstance(t, list):  # OpenAPI 3.1 nullable: ["string", "null"]
+        return "|".join(_scalar(x) for x in t)
     if t == "array":
-        items = schema.get("items", {})
-        return _type_str(spec, items) + "[]"
-    return {"integer": "int", "number": "float", "boolean": "bool", "string": "string"}.get(t, t)
+        return _type_str(spec, schema.get("items", {})) + "[]"
+    return _scalar(t)
 
 
 def _constraint_str(schema: dict) -> str:
@@ -76,36 +123,53 @@ def _constraint_str(schema: dict) -> str:
     return ",".join(bits)
 
 
-def _schema_fields(spec: dict, schema: dict) -> list[tuple[str, str, str]]:
+def _collect_properties(spec: dict, schema, depth: int = 0) -> dict:
+    """Merged properties of an object schema, following $ref and allOf (and
+    best-effort the first oneOf/anyOf member). Depth-guarded against cycles."""
+    if not isinstance(schema, dict) or depth > 8:
+        return {}
     if "$ref" in schema:
-        schema = _resolve_ref(spec, schema["$ref"])
+        return _collect_properties(spec, _resolve_ref(spec, schema["$ref"]), depth + 1)
+    props = dict(schema.get("properties", {}))
+    for member in schema.get("allOf", []):
+        props.update(_collect_properties(spec, member, depth + 1))
+    if not props:
+        for comb in ("oneOf", "anyOf"):
+            for member in schema.get(comb, []):
+                p = _collect_properties(spec, member, depth + 1)
+                if p:
+                    return p
+    return props
+
+
+def _schema_fields(spec: dict, schema) -> list[tuple[str, str, str]]:
     out = []
-    for fname, prop in schema.get("properties", {}).items():
-        resolved = _resolve_ref(spec, prop["$ref"]) if "$ref" in prop else prop
-        out.append((fname, _type_str(spec, prop), _constraint_str(resolved)))
+    for fname, prop in _collect_properties(spec, schema).items():
+        out.append((fname, _type_str(spec, prop), _constraint_str(_deref(spec, prop))))
     return out
 
 
-def _json_body_schema(operation: dict) -> dict | None:
+def _json_body_schema(spec: dict, operation: dict) -> dict | None:
     rb = operation.get("requestBody")
-    if not rb:
+    if not isinstance(rb, dict):
         return None
+    rb = _deref(spec, rb)  # requestBody may itself be a $ref
     return rb.get("content", {}).get("application/json", {}).get("schema")
 
 
 def _returns_str(spec: dict, operation: dict) -> str:
-    for code in ("200", "201"):
-        resp = operation.get("responses", {}).get(code)
-        if not resp:
-            continue
+    responses = operation.get("responses", {})
+    for code in ("200", "201", "202"):
+        resp = _deref(spec, responses.get(code, {}))  # response may be a $ref
         schema = resp.get("content", {}).get("application/json", {}).get("schema")
-        if not schema:
+        if not isinstance(schema, dict):
             continue
         if schema.get("type") == "array":
-            ref = schema.get("items", {}).get("$ref", "")
-            return f"{ref.rsplit('/', 1)[-1] or 'object'}[]"
+            items = schema.get("items", {})
+            ref = items.get("$ref", "") if isinstance(items, dict) else ""
+            return f"{ref.rsplit('/', 1)[-1] or _type_str(spec, items)}[]"
         ref = schema.get("$ref", "")
-        return ref.rsplit("/", 1)[-1] or _type_str(spec, schema)
+        return ref.rsplit("/", 1)[-1] if ref else _type_str(spec, schema)
     return "void"
 
 
@@ -120,23 +184,34 @@ def _synth_name(method: str, path: str) -> str:
     return f"{verb}_{noun}"
 
 
+def _resolved_parameters(spec: dict, path_item: dict, operation: dict) -> list[dict]:
+    """Path-item-level + operation-level parameters, with $refs resolved."""
+    out: list[dict] = []
+    for p in list(path_item.get("parameters", [])) + list(operation.get("parameters", [])):
+        if isinstance(p, dict) and "$ref" in p:
+            p = _deref(spec, p)
+        if isinstance(p, dict) and "name" in p:
+            out.append(p)
+    return out
+
+
 def operations(spec: dict) -> list[Op]:
     """All operations in a stable order. Names prefer operationId, else a
     synthesized name; collisions are de-duplicated with a numeric suffix."""
     ops: list[Op] = []
     seen: dict[str, int] = {}
     for path in sorted(spec.get("paths", {})):
-        methods = spec["paths"][path]
+        path_item = spec["paths"][path]
+        if not isinstance(path_item, dict):
+            continue
         for method in ("get", "post", "put", "patch", "delete"):
-            if method not in methods:
+            operation = path_item.get(method)
+            if not isinstance(operation, dict):
                 continue
-            operation = methods[method]
-            path_params = [
-                (p["name"], _type_str(spec, p.get("schema", {})))
-                for p in operation.get("parameters", [])
-                if p.get("in") == "path"
-            ]
-            body_schema = _json_body_schema(operation)
+            params = _resolved_parameters(spec, path_item, operation)
+            path_params = [(p["name"], _type_str(spec, p.get("schema", {})))
+                           for p in params if p.get("in") == "path"]
+            body_schema = _json_body_schema(spec, operation)
             body_fields = _schema_fields(spec, body_schema) if body_schema else []
             name = operation.get("operationId") or _synth_name(method.upper(), path)
             if name in seen:
@@ -144,31 +219,24 @@ def operations(spec: dict) -> list[Op]:
                 name = f"{name}_{seen[name]}"
             else:
                 seen[name] = 1
-            ops.append(
-                Op(
-                    method=method.upper(),
-                    path=path,
-                    summary=operation.get("summary", ""),
-                    path_params=path_params,
-                    body_fields=body_fields,
-                    returns=_returns_str(spec, operation),
-                    name=name,
-                    raw=operation,
-                )
-            )
+            ops.append(Op(
+                method=method.upper(), path=path, summary=operation.get("summary", ""),
+                path_params=path_params, body_fields=body_fields,
+                returns=_returns_str(spec, operation), name=name, params=params, raw=operation,
+            ))
     return ops
 
 
 def inline_refs(spec: dict, node):
-    """Deep-copy `node` with every $ref recursively inlined (what a naive
-    OpenAPI->tools bridge emits). Guards against ref cycles."""
+    """Deep-copy `node` with every *local* $ref recursively inlined; external
+    refs and cycles are left intact."""
 
     def _walk(n, stack: frozenset):
         if isinstance(n, dict):
             if "$ref" in n:
                 ref = n["$ref"]
-                if ref in stack:
-                    return {"$ref": ref}  # cycle: stop inlining
+                if not _local(ref) or ref in stack:
+                    return {"$ref": ref}  # external or cycle: leave as-is
                 resolved = _resolve_ref(spec, ref)
                 siblings = {k: v for k, v in n.items() if k != "$ref"}
                 return _walk({**resolved, **siblings}, stack | {ref})
@@ -181,22 +249,22 @@ def inline_refs(spec: dict, node):
 
 
 def referenced_component_names(spec: dict) -> list[str]:
-    """Component schema names referenced by operation bodies/returns, in order
-    of first appearance — used to render shared type blocks in compact menus."""
+    """Component schema names referenced by operation bodies/returns, in order of
+    first appearance — used to render shared type blocks in compact menus."""
     names: list[str] = []
 
-    def visit(schema: dict | None):
-        if not schema:
+    def visit(schema):
+        if not isinstance(schema, dict):
             return
-        ref = schema.get("$ref") or schema.get("items", {}).get("$ref")
-        if ref:
+        ref = schema.get("$ref") or (schema.get("items", {}) or {}).get("$ref")
+        if ref and _local(ref):
             name = ref.rsplit("/", 1)[-1]
             if name not in names:
                 names.append(name)
 
     for op in operations(spec):
-        visit(_json_body_schema(op.raw))
-        for code in ("200", "201"):
-            resp = op.raw.get("responses", {}).get(code, {})
+        visit(_json_body_schema(spec, op.raw))
+        for code in ("200", "201", "202"):
+            resp = _deref(spec, op.raw.get("responses", {}).get(code, {}))
             visit(resp.get("content", {}).get("application/json", {}).get("schema"))
     return names

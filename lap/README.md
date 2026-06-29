@@ -13,7 +13,9 @@ pip install -e ".[mcp]"           # + real-MCP baseline (fastmcp)
 pip install -e ".[faithful]"      # + faithful Anthropic count_tokens
 ```
 
-Core deps are just `httpx` + `tiktoken`; `fastmcp` and `anthropic` are optional extras.
+Core deps are just `httpx` + `tiktoken` + `pyyaml`; `fastmcp` and `anthropic` are optional extras.
+Robust to real specs: `allOf`/`oneOf`/`anyOf`, `$ref` in params/requestBodies/responses,
+path-item-level parameters, OpenAPI 3.1 `type` lists, external `$ref`s (left intact), and YAML input.
 
 ## Quickstart
 
@@ -70,4 +72,4 @@ behind the compact form are the [LAP profile](../profile/llm-api-profile.md).
 | `tokens.py` | token counting (Anthropic endpoint, or tiktoken approx) |
 | `score.py` | the `lap score` CLI |
 | `lint.py` | the `lap lint` CLI — checks a spec against the LAP profile rules (D3/R1/R2/R3/W1/E1/A1) |
-| `examples/` | sample specs (e.g. a non-pet-zoo Bookstore API) |
+| `examples/` | sample specs: a non-pet-zoo Bookstore API + a gnarly OpenAPI 3.1 (allOf / $ref-params / nullable / external-ref) |

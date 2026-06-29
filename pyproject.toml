@@ -10,7 +10,7 @@ readme = "lap/README.md"
 requires-python = ">=3.10"
 license = { text = "MIT" }
 keywords = ["llm", "agents", "openapi", "mcp", "tokens", "api"]
-dependencies = ["httpx", "tiktoken"]
+dependencies = ["httpx", "tiktoken", "pyyaml"]
 
 [project.optional-dependencies]
 mcp = ["fastmcp"]          # real-MCP baseline row (lap score)

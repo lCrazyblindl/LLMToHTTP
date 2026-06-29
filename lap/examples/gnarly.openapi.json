@@ -1,0 +1,68 @@
+{
+  "openapi": "3.1.0",
+  "info": { "title": "Gnarly API", "version": "1.0.0" },
+  "paths": {
+    "/pets": {
+      "parameters": [
+        { "name": "limit", "in": "query", "schema": { "type": "integer" } }
+      ],
+      "get": {
+        "operationId": "listPets",
+        "responses": {
+          "200": { "description": "ok", "content": { "application/json": { "schema": { "type": "array", "items": { "$ref": "#/components/schemas/Pet" } } } } }
+        }
+      },
+      "post": {
+        "operationId": "createPet",
+        "requestBody": { "$ref": "#/components/requestBodies/PetBody" },
+        "responses": { "201": { "description": "created", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Pet" } } } } }
+      }
+    },
+    "/pets/{petId}": {
+      "get": {
+        "operationId": "getPet",
+        "parameters": [ { "$ref": "#/components/parameters/PetId" } ],
+        "responses": { "200": { "$ref": "#/components/responses/PetResp" } }
+      }
+    }
+  },
+  "components": {
+    "parameters": {
+      "PetId": { "name": "petId", "in": "path", "required": true, "schema": { "type": "integer" } }
+    },
+    "requestBodies": {
+      "PetBody": { "required": true, "content": { "application/json": { "schema": { "$ref": "#/components/schemas/PetCreate" } } } }
+    },
+    "responses": {
+      "PetResp": { "description": "a pet", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Pet" } } } }
+    },
+    "schemas": {
+      "Status": { "type": "string", "enum": ["available", "sold"] },
+      "Base": {
+        "type": "object",
+        "properties": { "id": { "type": ["integer", "null"] } }
+      },
+      "Pet": {
+        "allOf": [
+          { "$ref": "#/components/schemas/Base" },
+          {
+            "type": "object",
+            "required": ["name"],
+            "properties": {
+              "name": { "type": "string" },
+              "status": { "$ref": "#/components/schemas/Status" }
+            }
+          }
+        ]
+      },
+      "PetCreate": {
+        "type": "object",
+        "required": ["name"],
+        "properties": {
+          "name": { "type": "string", "minLength": 1 },
+          "owner": { "$ref": "https://example.com/external.json#/Owner" }
+        }
+      }
+    }
+  }
+}

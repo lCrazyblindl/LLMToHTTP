@@ -23,16 +23,16 @@ from . import openapi_ir as ir
 def _input_schema(spec: dict, op: ir.Op) -> dict:
     props: dict = {}
     required: list[str] = []
-    for param in op.raw.get("parameters", []):
+    for param in op.params:
         if param.get("in") == "path":
             props[param["name"]] = ir.inline_refs(spec, param.get("schema", {}))
             if param.get("required", True):
                 required.append(param["name"])
-    body = ir._json_body_schema(op.raw)
+    body = ir._json_body_schema(spec, op.raw)
     if body:
-        inlined = ir.inline_refs(spec, body)
-        props.update(inlined.get("properties", {}))
-        required.extend(inlined.get("required", []))
+        for fname, prop in ir._collect_properties(spec, body).items():
+            props[fname] = ir.inline_refs(spec, prop)
+        required.extend(ir._deref(spec, body).get("required", []))
     return {"type": "object", "properties": props, "required": required}
 
 
