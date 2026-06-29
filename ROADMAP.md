@@ -50,13 +50,46 @@ built for stop/resume, one bounded session per stage.
   `lap` command; `lap score` / `lap lint` verified as installed commands. **Remaining manual
   step (owner's):** publish to PyPI + a GitHub release to make it `pip install lap-score`.
 
+## Stages — v0.2 (planned improvements; same stop/resume model)
+
+Ordered: trust foundation → robustness → value features → (last) the key-needing live
+validation. Each is one bounded session. `[no key]` = doable without an API key.
+
+- [ ] **▶ Stage 7 — Tests + CI + LICENSE.** `pytest` over IR parsing (`lap/openapi_ir.py`),
+  menu rendering (`lap/menu.py`), and lint rules (`lap/lint.py`) via golden findings on
+  `lap/examples/bookstore.openapi.json`, plus the token-bench `--check-code`; a GitHub Actions
+  workflow (tests + `lap lint` the examples); a real `LICENSE` (MIT). _Done: pytest green; CI
+  workflow committed; LICENSE present._  `[no key]`
+- [ ] **Stage 8 — Robustness on real specs.** Handle `allOf`/`oneOf`/`anyOf`, `$ref` in
+  parameters, path-item-level `parameters`, and external `$ref` gracefully (skip/warn, no
+  crash); OpenAPI 3.1 basics; tighten linter keyword sets. _Done: score+lint a gnarlier real
+  spec (e.g. a GitHub/Stripe subset) without crashing + a regression test._  `[no key]`
+- [ ] **Stage 9 — Estimate bucket C from response schemas.** From a response schema + an
+  assumed page size, estimate per-response token cost; surface it (flag heavy endpoints).
+  _Done: `lap score` shows an estimated C for collection endpoints, verified on Petstore._  `[no key]`
+- [ ] **Stage 10 — `--json` output + CI gate.** Machine-readable `score`/`lint`; threshold
+  flags (`--max-menu-tokens`, `--fail-on warn`) + a rule-suppression config; a documented GH
+  Action snippet. _Done: `--json` emits structured output; thresholds set the exit code._  `[no key]`
+- [ ] **Stage 11 — `tool_search` menu form.** Add the lazy-loading (search+execute) form to
+  `lap score` to show the at-scale bucket-A collapse on large APIs. _Done: the form appears with
+  its reduction on a large spec._  `[no key]`
+- [ ] **Stage 12 — Score live MCP/NLWeb endpoints.** `lap score --mcp-url <url>` connects to a
+  running MCP server (MCP client) and scores its advertised tools. _Done: scores ≥1 live MCP
+  server._  `[no key]`
+- [ ] **Stage 13 (LAST) — Live success + faithful validation.** With `ANTHROPIC_API_KEY`: run
+  `run_bench.py --live --quick` for pass/fail + faithful `count_tokens`; sanity-check tiktoken
+  vs faithful; update the profile status from "unvalidated" to measured. _Done: real pass/fail
+  + faithful numbers recorded._  **[NEEDS API KEY — intentionally last]**
+
+### Further backlog (unscheduled)
+Auto-fix patches from lint (emit a compact manifest), `lap score before after` diff mode, a
+profile "L0 be-discoverable" rule (llms.txt / .well-known / NLWeb), CONTRIBUTING + issue templates.
+
 ## Status
 
-**✅ All stages (0–6) complete.** The LAP toolkit (`lap score` / `lap lint` + real-MCP
-baseline), profile v1.0, the landscape doc, and token-bench are in place and pip-installable.
-Optional manual follow-ups (owner's): publish to PyPI + a GitHub release; and run the live
-success check with an `ANTHROPIC_API_KEY` (`run_bench.py --live --quick`, cheap) to validate
-that the token savings don't cost accuracy.
+**v0.1 complete (stages 0–6).** Now on **v0.2** — **▶ Stage 7** (Tests + CI + LICENSE). The
+live-key validation is intentionally **last** (Stage 13). Say "continue LAP" to run the next
+stage. (v0.1 also has owner-only manual follow-ups: publish to PyPI + a GitHub release.)
 
 ## Sources captured for Stage 1 (so it can be done without re-searching)
 
