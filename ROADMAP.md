@@ -31,10 +31,12 @@ built for stop/resume, one bounded session per stage.
   (`lap/openapi_ir.py`), renders openapi_full / compact_sig / numbered menus
   (`lap/menu.py`) and reports bucket-A tokens + reduction. Verified on a non-pet-zoo
   Bookstore spec (418 → 205 compact). B/C still need per-API tasks (token-bench).
-- [ ] **▶ Stage 3 — Score real ecosystem targets.** A real MCP server (FastMCP from a
-  public OpenAPI) and, if feasible, an NLWeb `/mcp` endpoint. _Verify: ≥1 real API
-  scored end to end._
-- [ ] **Stage 4 — Faithful tokens + success check.** Default to Anthropic
+- [x] **Stage 3 — Score real ecosystem targets.** Done: `lap/mcp_form.py` adds a
+  real-MCP baseline via `FastMCP.from_openapi`; `lap score` now includes the real MCP
+  menu (+ output-schema figure). Verified end-to-end on the **live Swagger Petstore**
+  (19 ops): real MCP 2226 (3844 w/ output schemas) vs compact 415 — the toy finding
+  holds in the wild (real MCP is heavier than the naive baseline).
+- [ ] **▶ Stage 4 — Faithful tokens + success check.** Default to Anthropic
   `count_tokens` when `ANTHROPIC_API_KEY` is set; run `--live` for pass/fail.
   _Verify: a task set has faithful token + success numbers._
 - [ ] **Stage 5 — LAP profile v1.0 + linter.** Promote `profile/llm-api-profile.md`
@@ -45,7 +47,7 @@ built for stop/resume, one bounded session per stage.
 
 ## Status
 
-**▶ Next: Stage 3** (Score real ecosystem targets). Stages 0–2 done.
+**▶ Next: Stage 4** (Faithful tokens + success check). Stages 0–3 done.
 
 ## Sources captured for Stage 1 (so it can be done without re-searching)
 
