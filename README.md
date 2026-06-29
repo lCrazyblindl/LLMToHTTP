@@ -1,4 +1,7 @@
 # LLMToHTTP
+
+[![ci](https://github.com/lCrazyblindl/LLMToHTTP/actions/workflows/ci.yml/badge.svg)](https://github.com/lCrazyblindl/LLMToHTTP/actions/workflows/ci.yml) · MIT licensed ([LICENSE](LICENSE))
+
 LLM TO HTTP Improvement
 
 Sandbox repo for experimenting with exposing tools over HTTP, including MCP.

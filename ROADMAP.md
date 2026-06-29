@@ -55,12 +55,10 @@ built for stop/resume, one bounded session per stage.
 Ordered: trust foundation → robustness → value features → (last) the key-needing live
 validation. Each is one bounded session. `[no key]` = doable without an API key.
 
-- [ ] **▶ Stage 7 — Tests + CI + LICENSE.** `pytest` over IR parsing (`lap/openapi_ir.py`),
-  menu rendering (`lap/menu.py`), and lint rules (`lap/lint.py`) via golden findings on
-  `lap/examples/bookstore.openapi.json`, plus the token-bench `--check-code`; a GitHub Actions
-  workflow (tests + `lap lint` the examples); a real `LICENSE` (MIT). _Done: pytest green; CI
-  workflow committed; LICENSE present._  `[no key]`
-- [ ] **Stage 8 — Robustness on real specs.** Handle `allOf`/`oneOf`/`anyOf`, `$ref` in
+- [x] **Stage 7 — Tests + CI + LICENSE.** Done: `tests/test_lap.py` (8 tests, green) over
+  IR / menu / lint / tokens / score on the bookstore spec; `.github/workflows/ci.yml` (pytest +
+  smoke `lap lint`); MIT `LICENSE`; `dev` extra + CI badge in README.  `[no key]`
+- [ ] **▶ Stage 8 — Robustness on real specs.** Handle `allOf`/`oneOf`/`anyOf`, `$ref` in
   parameters, path-item-level `parameters`, and external `$ref` gracefully (skip/warn, no
   crash); OpenAPI 3.1 basics; tighten linter keyword sets. _Done: score+lint a gnarlier real
   spec (e.g. a GitHub/Stripe subset) without crashing + a regression test._  `[no key]`
@@ -87,9 +85,10 @@ profile "L0 be-discoverable" rule (llms.txt / .well-known / NLWeb), CONTRIBUTING
 
 ## Status
 
-**v0.1 complete (stages 0–6).** Now on **v0.2** — **▶ Stage 7** (Tests + CI + LICENSE). The
-live-key validation is intentionally **last** (Stage 13). Say "continue LAP" to run the next
-stage. (v0.1 also has owner-only manual follow-ups: publish to PyPI + a GitHub release.)
+**v0.1 complete (stages 0–6).** On **v0.2** — **▶ Stage 8** (Robustness on real specs).
+Stage 7 done (tests + CI + LICENSE). The live-key validation is intentionally **last**
+(Stage 13). Say "continue LAP" to run the next stage. (v0.1 owner-only follow-up: publish to
+PyPI + a GitHub release.)
 
 ## Sources captured for Stage 1 (so it can be done without re-searching)
 
