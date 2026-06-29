@@ -25,9 +25,16 @@ import variants as V
 from tasks import Task, _call
 from variants.base import dumps
 
-MODEL = os.environ.get("BENCH_MODEL", "claude-opus-4-8")
+# Cheap by default: the live check measures whether compression hurts *accuracy*,
+# for which a small model is fine (the comparison is across variants on the same
+# model). Override with BENCH_MODEL=claude-opus-4-8 for the strongest signal.
+MODEL = os.environ.get("BENCH_MODEL", "claude-haiku-4-5-20251001")
 MAX_TURNS = 8
 MAX_TOKENS = 1024
+
+# --quick subset: the most telling variants/tasks, to bound spend.
+QUICK_VARIANTS = ("openapi_full", "compact_sig", "code_exec", "odata_query")
+QUICK_TASKS = ("T2_count_females", "T5_longest_name")
 
 _OPS = s.list_operations()
 _BY_OPNAME = {op.name: op for op in _OPS}
@@ -96,20 +103,23 @@ def _run_one(anthropic_client, variant: V.Variant, task: Task) -> dict:
     return {"tokens": total, "ok": ok}
 
 
-def run(tasks: list[Task]) -> str:
+def run(tasks: list[Task], quick: bool = False) -> str:
     from anthropic import Anthropic
 
     client = Anthropic()
-    headers = ["variant"] + [t.name for t in tasks]
+    variants = [V.BY_NAME[n] for n in QUICK_VARIANTS] if quick else V.ALL
+    used = [t for t in tasks if t.name in QUICK_TASKS] if quick else tasks
+    headers = ["variant"] + [t.name for t in used]
     rows = []
-    for v in V.ALL:
+    for v in variants:
         cells = []
-        for t in tasks:
+        for t in used:
             r = _run_one(client, v, t)
             cells.append(f"{r['tokens']} {'OK' if r['ok'] else 'FAIL'}")
         rows.append([v.name] + cells)
 
-    out = ["## Live runs (real Claude, total tokens + success)", ""]
+    out = [f"## Live runs (real Claude, total tokens + success) — model `{MODEL}`"
+           + (" — quick subset" if quick else ""), ""]
     out.append("| " + " | ".join(headers) + " |")
     out.append("| " + " | ".join("---" for _ in headers) + " |")
     for r in rows:

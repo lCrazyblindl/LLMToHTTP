@@ -86,6 +86,8 @@ def main() -> None:
     ap.add_argument("--live", action="store_true", help="also run each variant through Claude (needs key)")
     ap.add_argument("--check-code", action="store_true",
                     help="run each task's code_exec script in the sandbox and assert it returns the right answer")
+    ap.add_argument("--quick", action="store_true",
+                    help="with --live: run a small variant/task subset (cheap model) to bound spend")
     ap.add_argument("--out", default=os.path.join(HERE, "results.md"))
     args = ap.parse_args()
 
@@ -149,7 +151,7 @@ def main() -> None:
         try:
             import live_runs
 
-            blocks.append(live_runs.run(tasks))
+            blocks.append(live_runs.run(tasks, quick=args.quick))
         except Exception as exc:  # noqa: BLE001
             blocks.append(f"## Live runs\n\n_Skipped: {exc!r}_")
 

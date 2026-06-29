@@ -39,6 +39,11 @@ built for stop/resume, one bounded session per stage.
 - [ ] **▶ Stage 4 — Faithful tokens + success check.** Default to Anthropic
   `count_tokens` when `ANTHROPIC_API_KEY` is set; run `--live` for pass/fail.
   _Verify: a task set has faithful token + success numbers._
+  **Prep done (no key in env):** the live check now defaults to a cheap model
+  (`claude-haiku-4-5`) + a `--quick` subset to bound spend; both token-bench and `lap`
+  use faithful `count_tokens` automatically when a key is present. **Remaining (needs a
+  key):** set `ANTHROPIC_API_KEY`, then `python experiments/token-bench/run_bench.py
+  --live --quick` for real pass/fail, and re-run `lap score` for faithful numbers.
 - [ ] **Stage 5 — LAP profile v1.0 + linter.** Promote `profile/llm-api-profile.md`
   to v1 (measured guidance for MCP/NLWeb/OpenAPI authors); add `lap lint` checking
   L1–L4 with measured citations. _Verify: lint flags real violations._

@@ -62,9 +62,11 @@ python experiments/token-bench/run_bench.py               # offline, approx toke
 - **Optional Layer 2** (`--live`, needs key, spends tokens): actually runs each
   variant through Claude on the tasks and reports total tokens + whether the answer
   was correct — a check that compression doesn't trade tokens for wrong answers.
-  `code_exec` runs the model's Python in a subprocess sandbox (`sandbox.py`) with a
-  timeout and restricted builtins. Soft isolation — fine for this toy, not a
-  production boundary.
+  Defaults to a **cheap model** (`claude-haiku-4-5`; override with
+  `BENCH_MODEL=claude-opus-4-8` for the strongest signal), and `--quick` runs a small
+  variant/task subset to bound spend. `code_exec` runs the model's Python in a
+  subprocess sandbox (`sandbox.py`) with a timeout and restricted builtins — soft
+  isolation, fine for this toy, not a production boundary.
 
 Output goes to stdout and `results.md`.
 
