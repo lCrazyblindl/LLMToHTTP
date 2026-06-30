@@ -63,6 +63,8 @@ def count(text: str) -> int:
     """Tokens contributed by `text` itself."""
     backend = _init()
     if backend == "anthropic":
+        if not text:
+            return 0  # the API rejects empty message content
         full = _anthropic_client.messages.count_tokens(
             model=MODEL, messages=[{"role": "user", "content": text}]
         ).input_tokens

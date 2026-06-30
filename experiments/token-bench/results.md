@@ -1,7 +1,7 @@
 # LLM<->HTTP token benchmark (pet-zoo)
 
-- date: 2026-06-29
-- tokenizer backend: **tiktoken-approx**  _(approximate - GPT-style BPE, not Claude's; relative ordering is the signal)_
+- date: 2026-06-30
+- tokenizer backend: **anthropic**
 - source of truth: pet-zoo OpenAPI (21 operations)
 - fixture: 50 animals (monkey:15, lion:12, tiger:13, elephant:10)
 
@@ -12,69 +12,74 @@ Buckets: **A** = definitions in context, **B** = the call(s), **C** = the result
 
 | variant | A tokens | saved vs base | form |
 | --- | --- | --- | --- |
-| openapi_full | 1637 | +0% | 21 tool(s) |
-| mcp_fastmcp | 1689 | -3% | 21 tool(s) |
-| mcp_fastmcp (+outputSchema) | 3762 | -130% | 21 tool(s) + manifest text |
-| compact_sig | 401 | +76% | manifest text |
-| numbered | 466 | +72% | manifest text |
-| code_exec | 183 | +89% | 1 tool(s) + manifest text |
-| odata_query | 219 | +87% | 1 tool(s) + manifest text |
+| openapi_full | 2665 | +0% | 21 tool(s) |
+| mcp_fastmcp | 2752 | -3% | 21 tool(s) |
+| mcp_fastmcp (+outputSchema) | 6418 | -141% | 21 tool(s) + manifest text |
+| compact_sig | 634 | +76% | manifest text |
+| numbered | 747 | +72% | manifest text |
+| code_exec | 555 | +79% | 1 tool(s) + manifest text |
+| odata_query | 582 | +78% | 1 tool(s) + manifest text |
 
 ## T1_create - "Add a new monkey named Bobo, age 3, male."
 
 | variant | A | B call | C result | total | saved vs base |
 | --- | --- | --- | --- | --- | --- |
-| openapi_full | 1637 | 22 | 24 | 1683 | +0% |
-| mcp_fastmcp | 1689 | 25 | 24 | 1738 | -3% |
-| compact_sig | 401 | 22 | 24 | 447 | +73% |
-| numbered | 466 | 20 | 24 | 510 | +70% |
-| code_exec | 183 | 26 | 22 | 231 | +86% |
-| odata_query | 219 | 24 | 5 | 248 | +85% |
+| openapi_full | 2665 | 36 | 36 | 2737 | +0% |
+| mcp_fastmcp | 2752 | 42 | 36 | 2830 | -3% |
+| compact_sig | 634 | 36 | 36 | 706 | +74% |
+| numbered | 747 | 32 | 36 | 815 | +70% |
+| code_exec | 555 | 36 | 34 | 625 | +77% |
+| odata_query | 582 | 40 | 6 | 628 | +77% |
 
 ## T2_count_females - "How many of all the animals are female?"
 
 | variant | A | B call | C result | total | saved vs base |
 | --- | --- | --- | --- | --- | --- |
-| openapi_full | 1637 | 11 | 1161 | 2809 | +0% |
-| mcp_fastmcp | 1689 | 15 | 1161 | 2865 | -2% |
-| compact_sig | 401 | 11 | 1161 | 1573 | +44% |
-| numbered | 466 | 9 | 1161 | 1636 | +42% |
-| code_exec | 183 | 28 | 6 | 217 | +92% |
-| odata_query | 219 | 15 | 5 | 239 | +91% |
+| openapi_full | 2665 | 15 | 1780 | 4460 | +0% |
+| mcp_fastmcp | 2752 | 22 | 1780 | 4554 | -2% |
+| compact_sig | 634 | 15 | 1780 | 2429 | +46% |
+| numbered | 747 | 12 | 1780 | 2539 | +43% |
+| code_exec | 555 | 40 | 6 | 601 | +87% |
+| odata_query | 582 | 26 | 6 | 614 | +86% |
 
 ## T3_count_per_species - "Count how many animals there are of each species."
 
 | variant | A | B call | C result | total | saved vs base |
 | --- | --- | --- | --- | --- | --- |
-| openapi_full | 1637 | 44 | 1167 | 2848 | +0% |
-| mcp_fastmcp | 1689 | 56 | 1167 | 2912 | -2% |
-| compact_sig | 401 | 44 | 1167 | 1612 | +43% |
-| numbered | 466 | 36 | 1167 | 1669 | +41% |
-| code_exec | 183 | 28 | 19 | 230 | +92% |
-| odata_query | 219 | 10 | 19 | 248 | +91% |
+| openapi_full | 2665 | 67 | 1786 | 4518 | +0% |
+| mcp_fastmcp | 2752 | 87 | 1786 | 4625 | -2% |
+| compact_sig | 634 | 67 | 1786 | 2487 | +45% |
+| numbered | 747 | 51 | 1786 | 2584 | +43% |
+| code_exec | 555 | 44 | 28 | 627 | +86% |
+| odata_query | 582 | 17 | 28 | 627 | +86% |
 
 ## T4_peek_one - "Find one tiger older than 5; give me its name and age."
 
 | variant | A | B call | C result | total | saved vs base |
 | --- | --- | --- | --- | --- | --- |
-| openapi_full | 1637 | 11 | 315 | 1963 | +0% |
-| mcp_fastmcp | 1689 | 14 | 315 | 2018 | -3% |
-| compact_sig | 401 | 11 | 315 | 727 | +63% |
-| numbered | 466 | 9 | 315 | 790 | +60% |
-| code_exec | 183 | 43 | 12 | 238 | +88% |
-| odata_query | 219 | 25 | 19 | 263 | +87% |
+| openapi_full | 2665 | 16 | 472 | 3153 | +0% |
+| mcp_fastmcp | 2752 | 21 | 472 | 3245 | -3% |
+| compact_sig | 634 | 16 | 472 | 1122 | +64% |
+| numbered | 747 | 12 | 472 | 1231 | +61% |
+| code_exec | 555 | 57 | 16 | 628 | +80% |
+| odata_query | 582 | 39 | 27 | 648 | +79% |
 
 ## T5_longest_name - "Which animal has the longest name? Give its name and species."
 
 | variant | A | B call | C result | total | saved vs base |
 | --- | --- | --- | --- | --- | --- |
-| openapi_full | 1637 | 11 | 1161 | 2809 | +0% |
-| mcp_fastmcp | 1689 | 15 | 1161 | 2865 | -2% |
-| compact_sig | 401 | 11 | 1161 | 1573 | +44% |
-| numbered | 466 | 9 | 1161 | 1636 | +42% |
-| code_exec | 183 | 37 | 13 | 233 | +92% |
-| odata_query | 219 | 11 | 561 | 791 | +72% |
+| openapi_full | 2665 | 15 | 1780 | 4460 | +0% |
+| mcp_fastmcp | 2752 | 22 | 1780 | 4554 | -2% |
+| compact_sig | 634 | 15 | 1780 | 2429 | +46% |
+| numbered | 747 | 12 | 1780 | 2539 | +43% |
+| code_exec | 555 | 55 | 20 | 630 | +86% |
+| odata_query | 582 | 18 | 978 | 1578 | +65% |
 
-## Live runs
+## Live runs (real Claude, total tokens + success) — model `claude-haiku-4-5-20251001` — quick subset
 
-_Skipped: TypeError('"Could not resolve authentication method. Expected one of api_key, auth_token, or credentials to be set. Or for one of the `X-Api-Key` or `Authorization` headers to be explicitly omitted"')_
+| variant | T2_count_females | T5_longest_name |
+| --- | --- | --- |
+| openapi_full | 6098 OK | 6148 OK |
+| compact_sig | 4439 OK | 4464 OK |
+| code_exec | 1625 OK | 1735 OK |
+| odata_query | 1662 OK | 2995 OK |

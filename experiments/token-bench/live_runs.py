@@ -118,8 +118,8 @@ def run(tasks: list[Task], quick: bool = False) -> str:
             cells.append(f"{r['tokens']} {'OK' if r['ok'] else 'FAIL'}")
         rows.append([v.name] + cells)
 
-    out = [f"## Live runs (real Claude, total tokens + success) — model `{MODEL}`"
-           + (" — quick subset" if quick else ""), ""]
+    out = [f"## Live runs (real Claude, total tokens + success) - model `{MODEL}`"
+           + (" - quick subset" if quick else ""), ""]
     out.append("| " + " | ".join(headers) + " |")
     out.append("| " + " | ".join("---" for _ in headers) + " |")
     for r in rows:

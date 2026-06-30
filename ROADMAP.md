@@ -79,10 +79,13 @@ validation. Each is one bounded session. `[no key]` = doable without an API key.
   --mcp-url <url>` connects via a FastMCP MCP client, lists advertised tools, and reports
   mcp_live vs compact/tool_search. Verified end to end against a local HTTP MCP server (6 tools,
   mcp_live 422 → compact 69 / tool_search 149) + an in-memory test. +1 test (17).  `[no key]`
-- [ ] **Stage 13 (LAST) — Live success + faithful validation.** With `ANTHROPIC_API_KEY`: run
-  `run_bench.py --live --quick` for pass/fail + faithful `count_tokens`; sanity-check tiktoken
-  vs faithful; update the profile status from "unvalidated" to measured. _Done: real pass/fail
-  + faithful numbers recorded._  **[NEEDS API KEY — intentionally last]**
+- [x] **Stage 13 (LAST) — Live success + faithful validation.** Done with a real API key:
+  faithful `count_tokens` (anthropic backend) reran token-bench — **same ordering** as the
+  tiktoken approximation, ~60% higher absolute (e.g. openapi_full 2665, compact 634, real MCP
+  2752/6418, code 555). `--live --quick` on Claude Haiku: **every variant answered correctly**
+  (compression doesn't cost accuracy) while compact/code/query spent ~3–4× fewer total tokens;
+  the T5 DSL-gap shows live (odata 2995 vs code 1735). Also fixed a latent empty-content bug in
+  token-bench `tokens.py` that the faithful run surfaced. `results.md` now holds faithful+live.
 
 ### Further backlog (unscheduled)
 Auto-fix patches from lint (emit a compact manifest), `lap score before after` diff mode, a
@@ -90,11 +93,10 @@ profile "L0 be-discoverable" rule (llms.txt / .well-known / NLWeb), CONTRIBUTING
 
 ## Status
 
-**v0.1 complete (stages 0–6); v0.2 stages 7–12 done — all key-free improvements complete.**
-The only remaining stage is **▶ Stage 13 (live success + faithful validation)**, which **needs an
-`ANTHROPIC_API_KEY`** (the owner is on Pro, which is not API access). With a key:
-`ANTHROPIC_API_KEY=... python experiments/token-bench/run_bench.py --live --quick`, then re-run
-`lap score` for faithful counts. (v0.1 owner-only follow-up: publish to PyPI + a GitHub release.)
+**✅ ALL STAGES COMPLETE — v0.1 (0–6) and v0.2 (7–13).** The findings are now validated on
+Claude's real tokenizer and on a live run (savings hold, accuracy holds). Remaining items are
+**optional**: the owner-only PyPI + GitHub release, and the unscheduled "further backlog" below
+(auto-fix, diff mode, L0 discoverability rule, CONTRIBUTING) — all key-free if you want more.
 
 ## Sources captured for Stage 1 (so it can be done without re-searching)
 

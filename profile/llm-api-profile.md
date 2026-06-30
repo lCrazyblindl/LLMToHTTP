@@ -1,11 +1,12 @@
 # LLM-API Profile (LAP) — v1.0
 
 **Status:** v1.0 — the rules and conformance levels are stable. Each rule is backed by
-a measurement from [`experiments/token-bench`](../experiments/token-bench/README.md)
-(currently tiktoken-approx; faithful Anthropic counts engage automatically with an API
-key). Honest scope: LAP optimizes **token cost** (measured — e.g. on the live Swagger
-Petstore a real MCP menu is 2226 tokens vs 415 for compact signatures); its effect on
-**task success** is not yet empirically validated (the live check is ready but unrun).
+a measurement from [`experiments/token-bench`](../experiments/token-bench/README.md).
+Numbers were validated on Claude's real tokenizer (faithful `count_tokens`): same relative
+ordering as the tiktoken approximation, ~60% higher in absolute terms. Token **savings do
+not cost accuracy**: on a live run (Claude Haiku) every interface variant answered the test
+tasks correctly while the compact/code/query forms used ~3–4× fewer total tokens than the
+naive baseline. (Faithful e.g.: a real MCP menu 2752 tokens vs 634 for compact signatures.)
 **Tooling:** `python -m lap.score <openapi>` measures any API's menu cost;
 `python -m lap.lint <openapi>` flags violations of the rules below.
 
