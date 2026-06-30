@@ -2,13 +2,16 @@
 
 **Status:** v1.0 — the rules and conformance levels are stable. Each rule is backed by
 a measurement from [`experiments/token-bench`](../experiments/token-bench/README.md).
-The numbers are **preliminary**: checked on Claude's real tokenizer (faithful
-`count_tokens`) — same relative ordering as the tiktoken approximation, ~60% higher in
-absolute terms — and on a single live pass (Claude Haiku) in which every interface variant
-answered the test tasks correctly while the compact/code/query forms used ~3–4× fewer total
-tokens than the naive baseline. That live pass was one run over a small task subset, so it
-is **indicative, not yet a success rate**; a repeated model × category matrix is the next
-validation step. (Faithful e.g.: a real MCP menu 2752 tokens vs 634 for compact signatures.)
+The numbers are **preliminary** but now include a small success-rate check. On Claude's real
+tokenizer (faithful `count_tokens`) the relative ordering matches the tiktoken approximation
+(~60% higher in absolute terms). On a live **success-rate matrix** (Claude Haiku, one task per
+category × 3 repeats, `numbered` included), **compression did not cost accuracy**: `numbered`,
+`code_exec` and `odata_query` scored 15/15, `compact_sig` 14/15, and the naive `openapi_full`
+baseline came *last* at 13/15 (both misses on the aggregate-count task) — while the compact menu
+used ~1.4× and the code/query forms ~3–4× fewer total tokens. **Caveats:** one cheap model, k=3
+(noisy at n=3), one toy API (pet-zoo) — indicative, not a broad benchmark; raw table in
+[`experiments/token-bench/validation.md`](../experiments/token-bench/validation.md). (Faithful
+e.g.: a real MCP menu 2752 tokens vs 634 for compact signatures.)
 **Tooling:** `python -m lap.score <openapi>` measures any API's menu cost;
 `python -m lap.lint <openapi>` flags violations of the rules below.
 

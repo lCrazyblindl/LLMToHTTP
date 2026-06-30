@@ -73,7 +73,7 @@ def _expected(task: Task) -> list[str]:
     return [str(v) for v in fv.values()] if isinstance(fv, dict) else [str(fv)]
 
 
-def _run_one(anthropic_client, variant: V.Variant, task: Task) -> dict:
+def _run_one(anthropic_client, variant: V.Variant, task: Task, model: str = MODEL) -> dict:
     client = s.reset_and_seed()
     system = variant.definitions().text or "Use the provided tools to answer."
     tools = _tools_for(variant)
@@ -83,7 +83,7 @@ def _run_one(anthropic_client, variant: V.Variant, task: Task) -> dict:
 
     for _ in range(MAX_TURNS):
         resp = anthropic_client.messages.create(
-            model=MODEL, max_tokens=MAX_TOKENS, system=system, tools=tools, messages=messages
+            model=model, max_tokens=MAX_TOKENS, system=system, tools=tools, messages=messages
         )
         total += resp.usage.input_tokens + resp.usage.output_tokens
         messages.append({"role": "assistant", "content": resp.content})
@@ -101,6 +101,66 @@ def _run_one(anthropic_client, variant: V.Variant, task: Task) -> dict:
 
     ok = all(e.lower() in final_text.lower() for e in _expected(task))
     return {"tokens": total, "ok": ok}
+
+
+# The accuracy question (does compression cost correctness?) compares interface
+# *shapes*, so we skip the real-MCP variant (a menu-cost row, not an accuracy one)
+# and keep the five shapes that differ in how the model is asked to act.
+MATRIX_VARIANTS = ("openapi_full", "compact_sig", "numbered", "code_exec", "odata_query")
+
+
+def run_matrix(tasks: list[Task], repeats: int = 3, model: str | None = None,
+               variant_names=MATRIX_VARIANTS) -> str:
+    """Honest validation: per category × variant, run each task `repeats` times and
+    report a success *rate* (not one OK/FAIL), plus the mean total tokens. One
+    representative task per category keeps spend bounded; `numbered` is included so
+    its accuracy is on the record next to its (measured) token cost."""
+    from anthropic import Anthropic
+
+    client = Anthropic()
+    mdl = model or MODEL
+    variants = [V.BY_NAME[n] for n in variant_names]
+
+    by_cat: dict[str, list[Task]] = {}
+    for t in tasks:
+        by_cat.setdefault(t.category, []).append(t)
+    chosen = [(cat, ts[0]) for cat, ts in by_cat.items()]  # first task per category
+
+    succ: dict[tuple, int] = {}
+    toks: dict[tuple, int] = {}
+    for cat, task in chosen:
+        for v in variants:
+            s_ok = t_sum = 0
+            for _ in range(repeats):
+                r = _run_one(client, v, task, model=mdl)
+                s_ok += int(r["ok"])
+                t_sum += r["tokens"]
+            succ[(cat, v.name)] = s_ok
+            toks[(cat, v.name)] = round(t_sum / repeats)
+            print(f"[matrix] {cat:14} {v.name:13} {s_ok}/{repeats}  (~{toks[(cat, v.name)]} tok)",
+                  file=__import__("sys").stderr, flush=True)
+
+    vnames = [v.name for v in variants]
+    out = [f"## Honest validation - success rate over {repeats} repeats (model `{mdl}`)", "",
+           "Each cell: correct runs / repeats, for one representative task per category. "
+           "This is the accuracy check behind the token savings (incl. `numbered`).", "",
+           "| category | task | " + " | ".join(vnames) + " |",
+           "| --- | --- | " + " | ".join("---" for _ in vnames) + " |"]
+    for cat, task in chosen:
+        cells = [f"{succ[(cat, vn)]}/{repeats}" for vn in vnames]
+        out.append(f"| {cat} | {task.name} | " + " | ".join(cells) + " |")
+
+    totals = {vn: sum(succ[(cat, vn)] for cat, _ in chosen) for vn in vnames}
+    denom = len(chosen) * repeats
+    out += ["", f"**Overall correct:** " + ", ".join(f"{vn} {totals[vn]}/{denom}" for vn in vnames), ""]
+
+    out += ["### Mean total tokens (same runs)", "",
+            "| category | " + " | ".join(vnames) + " |",
+            "| --- | " + " | ".join("---" for _ in vnames) + " |"]
+    for cat, _task in chosen:
+        cells = [str(toks[(cat, vn)]) for vn in vnames]
+        out.append(f"| {cat} | " + " | ".join(cells) + " |")
+    return "\n".join(out)
 
 
 def run(tasks: list[Task], quick: bool = False) -> str:

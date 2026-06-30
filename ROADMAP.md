@@ -109,17 +109,15 @@ command, or restart Claude Code so all tools inherit it).
     which would privilege one part). Canonical description to apply at rename: **"lap — measure &
     improve the token-efficiency of agent-facing APIs (OpenAPI & MCP): scorer, linter, the LAP
     profile, and a reproducible token benchmark."** README tagline already lists all four.
-- [ ] **Stage 15 — Honest validation.** (a) **done** — the profile no longer says "validated";
-  it now reads "preliminary / indicative, not yet a success rate" and points to the matrix as the
-  next step. (b, pending) Real live matrix in token-bench: models (haiku/sonnet) × task categories
-  × **repeats** (k≈3 → success *rates*) × **include `numbered`**; report rates, not one OK/FAIL;
-  update the profile with the real evidence. _Done: a success-rate table over repeats incl.
-  numbered._  `[key for the matrix]`
-  - **Effectively unblocked** — probed 2026-06-30: `ANTHROPIC_API_KEY` is already set at **User
-    scope** (only the running process lacks it, an inheritance quirk). To run: restart Claude Code
-    so tools inherit it, or the agent reads the User-scope value per-command (as in Stage 13). It
-    **spends real API tokens** on the owner's account, so confirm scope first; default Haiku +
-    bounded repeats keeps it cheap.
+- [x] **Stage 15 — Honest validation.** Done. (a) The profile no longer says "validated" — it
+  reports a measured success rate with caveats. (b) Ran a live **success-rate matrix** (new
+  `run_bench.py --matrix` / `live_runs.run_matrix`): Claude Haiku, one task per category × **k=3
+  repeats**, `numbered` included → [`validation.md`](experiments/token-bench/validation.md).
+  **Compression did not cost accuracy:** `numbered`/`code_exec`/`odata_query` 15/15, `compact_sig`
+  14/15, naive `openapi_full` *last* at 13/15 (both misses on the aggregate-count task), while the
+  compact/code/query forms used ~1.4–4× fewer total tokens. Profile updated with this evidence +
+  caveats (one cheap model, k=3 noisy at n=3, toy API). The key was read from User scope per-command
+  (process didn't inherit it). _sonnet pass + ≥2 tasks/category left as cheap follow-ups._  `[key]`
 - [x] **Stage 16 — Grouped, ≥2-per-category benchmark tasks.** Done: `tasks.py` now carries a
   `category` per task and has **10 tasks across the 5 categories** (write / aggregate-read /
   peek-read / multi-step / beyond-DSL), ≥2 each; `run_bench` prints a **per-category averages**

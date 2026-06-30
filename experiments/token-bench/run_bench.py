@@ -88,6 +88,10 @@ def main() -> None:
                     help="run each task's code_exec script in the sandbox and assert it returns the right answer")
     ap.add_argument("--quick", action="store_true",
                     help="with --live: run a small variant/task subset (cheap model) to bound spend")
+    ap.add_argument("--matrix", action="store_true",
+                    help="live success-RATE matrix (per category x variant, --repeats each); needs key")
+    ap.add_argument("--repeats", type=int, default=3, help="repeats per cell for --matrix")
+    ap.add_argument("--model", help="override the live model id (default: cheap Haiku)")
     ap.add_argument("--out", default=os.path.join(HERE, "results.md"))
     args = ap.parse_args()
 
@@ -95,6 +99,20 @@ def main() -> None:
 
     if args.check_code:
         _check_code(tasks)
+        return
+
+    if args.matrix:
+        import live_runs
+
+        report = live_runs.run_matrix(tasks, repeats=args.repeats, model=args.model)
+        header = ("# LAP honest validation - live success rates\n\n"
+                  f"- date: {date.today().isoformat()}\n"
+                  f"- fixture: {sum(s._FIXTURE_COUNTS.values())} animals\n\n")
+        out_path = os.path.join(HERE, "validation.md")
+        with open(out_path, "w", encoding="utf-8") as f:
+            f.write(header + report + "\n")
+        print(header + report)
+        print(f"\n[written] {out_path}")
         return
 
     backend = tk.backend_name()
