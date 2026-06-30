@@ -109,9 +109,25 @@ def _print_human(res: dict) -> None:
           "per-API tasks - see experiments/token-bench for a full A/B/C run.\n")
 
 
+def _print_mcp(res: dict) -> None:
+    approx = "  (approx)" if res["tokenizer"] != "anthropic" else ""
+    print(f"\nLAP MCP score - {res['source']}")
+    print(f"tokenizer: {res['tokenizer']}{approx}")
+    print(f"advertised tools: {res['tools']}\n")
+    live = res["menu"]["mcp_live"]
+    rows = [("form", "A tokens", "saved vs live")]
+    for name in ("mcp_live", "compact_sig", "tool_search"):
+        rows.append((name, str(res["menu"][name]), _pct_saved(res["menu"][name], live)))
+    widths = [max(len(r[i]) for r in rows) for i in range(3)]
+    for r in rows:
+        print("  " + "  ".join(r[i].ljust(widths[i]) for i in range(3)))
+    print("\nmcp_live = the server's advertised menu; compact_sig / tool_search = a leaner menu's cost.\n")
+
+
 def main() -> None:
     ap = argparse.ArgumentParser(description="Measure an OpenAPI's menu (bucket A) token cost.")
-    ap.add_argument("source", help="OpenAPI spec: file path or http(s) URL")
+    ap.add_argument("source", nargs="?", help="OpenAPI spec: file path or http(s) URL (omit if --mcp-url)")
+    ap.add_argument("--mcp-url", help="score a live MCP server's advertised tools instead of an OpenAPI spec")
     ap.add_argument("--model", help="model id for faithful count_tokens (needs ANTHROPIC_API_KEY)")
     ap.add_argument("--no-mcp", action="store_true", help="skip the real-MCP (FastMCP) baseline row")
     ap.add_argument("--page-size", type=int, default=20,
@@ -125,6 +141,27 @@ def main() -> None:
 
     if args.model:
         tokens.MODEL = args.model
+
+    if args.mcp_url:
+        from . import mcp_client
+
+        if not mcp_client.available():
+            print("--mcp-url needs fastmcp: pip install 'lap-score[mcp]'", file=sys.stderr)
+            raise SystemExit(2)
+        res = {"source": args.mcp_url, "tokenizer": tokens.backend_name(),
+               **mcp_client.score_tools(mcp_client.fetch_tools(args.mcp_url))}
+        if args.json:
+            print(json.dumps(res, indent=2))
+        else:
+            _print_mcp(res)
+        live = res["menu"]["mcp_live"]
+        if args.max_menu_tokens is not None and live > args.max_menu_tokens:
+            print(f"FAIL: mcp_live menu {live} > --max-menu-tokens {args.max_menu_tokens}", file=sys.stderr)
+            raise SystemExit(1)
+        return
+
+    if not args.source:
+        ap.error("provide an OpenAPI source or --mcp-url")
 
     res = gather(ir.load_spec(args.source), args)
     if args.json:

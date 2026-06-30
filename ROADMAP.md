@@ -75,9 +75,10 @@ validation. Each is one bounded session. `[no key]` = doable without an API key.
   `search_tools`+`call_tool` + name index; schemas on demand) added to `lap score`. Its bucket A
   is ~flat in #ops: Petstore 1740→207 (−88%), a synthetic 120-op API 3722→624 (−83%), beating
   even compact at scale. +1 test (16). `[no key]`
-- [ ] **▶ Stage 12 — Score live MCP/NLWeb endpoints.** `lap score --mcp-url <url>` connects to a
-  running MCP server (MCP client) and scores its advertised tools. _Done: scores ≥1 live MCP
-  server._  `[no key]`
+- [x] **Stage 12 — Score live MCP/NLWeb endpoints.** Done: `lap/mcp_client.py` + `lap score
+  --mcp-url <url>` connects via a FastMCP MCP client, lists advertised tools, and reports
+  mcp_live vs compact/tool_search. Verified end to end against a local HTTP MCP server (6 tools,
+  mcp_live 422 → compact 69 / tool_search 149) + an in-memory test. +1 test (17).  `[no key]`
 - [ ] **Stage 13 (LAST) — Live success + faithful validation.** With `ANTHROPIC_API_KEY`: run
   `run_bench.py --live --quick` for pass/fail + faithful `count_tokens`; sanity-check tiktoken
   vs faithful; update the profile status from "unvalidated" to measured. _Done: real pass/fail
@@ -89,10 +90,11 @@ profile "L0 be-discoverable" rule (llms.txt / .well-known / NLWeb), CONTRIBUTING
 
 ## Status
 
-**v0.1 complete (stages 0–6).** On **v0.2** — **▶ Stage 12** (Score live MCP/NLWeb endpoints).
-Stages 7–11 done (tests/CI/LICENSE; robustness; estimated bucket C; `--json` + CI gate;
-`tool_search` form). The live-key validation is intentionally **last** (Stage 13). Say "continue
-LAP" to run the next stage. (v0.1 owner-only follow-up: publish to PyPI + a GitHub release.)
+**v0.1 complete (stages 0–6); v0.2 stages 7–12 done — all key-free improvements complete.**
+The only remaining stage is **▶ Stage 13 (live success + faithful validation)**, which **needs an
+`ANTHROPIC_API_KEY`** (the owner is on Pro, which is not API access). With a key:
+`ANTHROPIC_API_KEY=... python experiments/token-bench/run_bench.py --live --quick`, then re-run
+`lap score` for faithful counts. (v0.1 owner-only follow-up: publish to PyPI + a GitHub release.)
 
 ## Sources captured for Stage 1 (so it can be done without re-searching)
 

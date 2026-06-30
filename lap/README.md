@@ -22,6 +22,7 @@ path-item-level parameters, OpenAPI 3.1 `type` lists, external `$ref`s (left int
 ```bash
 lap score  https://petstore3.swagger.io/api/v3/openapi.json   # menu (bucket A) token cost
 lap lint   https://petstore3.swagger.io/api/v3/openapi.json   # flag LAP rule violations
+lap score  --mcp-url http://localhost:8080/mcp                # score a live MCP server's tools
 lap score  lap/examples/bookstore.openapi.json
 
 # no install needed, from the repo root:
@@ -94,6 +95,7 @@ behind the compact form are the [LAP profile](../profile/llm-api-profile.md).
 | `openapi_ir.py` | load any OpenAPI (file/URL) → normalized operations + `inline_refs` |
 | `menu.py` | render the menu forms (openapi_full / compact_sig / numbered) from the IR |
 | `mcp_form.py` | real-MCP baseline via `FastMCP.from_openapi` (optional; `--no-mcp` to skip) |
+| `mcp_client.py` | scores a live MCP server's advertised tools (`lap score --mcp-url`) |
 | `estimate.py` | estimates bucket C (result size) from response schemas (`--page-size`) |
 | `tokens.py` | token counting (Anthropic endpoint, or tiktoken approx) |
 | `score.py` | the `lap score` CLI |

@@ -166,3 +166,19 @@ def test_tool_search_collapses_at_scale():
     a = score_mod.score(_big_spec(120))
     assert a["tool_search"] < a["openapi_full"]
     assert a["tool_search"] < a["compact_sig"]  # at scale, lazy beats even compact signatures
+
+
+# --- score a live MCP server's advertised tools (Stage 12) ------------------
+def test_mcp_client_scores_live_server():
+    pytest.importorskip("fastmcp")
+    import httpx
+    from fastmcp import FastMCP
+
+    from lap import mcp_client
+
+    spec = ir.load_spec(str(SPEC_PATH))
+    server = FastMCP.from_openapi(openapi_spec=spec, client=httpx.AsyncClient(base_url="http://lap.invalid"))
+    tools = mcp_client.fetch_tools(server)  # in-memory MCP transport (real client protocol)
+    assert len(tools) == 6
+    res = mcp_client.score_tools(tools)
+    assert res["menu"]["tool_search"] < res["menu"]["mcp_live"]
