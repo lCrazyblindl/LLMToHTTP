@@ -82,6 +82,16 @@ GitHub Actions:
 - run: lap lint  api/openapi.json --fail-on warn
 ```
 
+…or the bundled composite **Action** (one step, no manual install):
+
+```yaml
+- uses: lCrazyblindl/lap@v0.3.0
+  with:
+    spec: api/openapi.json
+    max-menu-tokens: "800"     # gate the compact_sig menu (omit = report only)
+    fail-on: warn              # fail on any lint warning (omit = report only)
+```
+
 ## What it measures (and what it doesn't)
 
 It measures **bucket A** (the definitions/menu the model carries in context) and **estimates

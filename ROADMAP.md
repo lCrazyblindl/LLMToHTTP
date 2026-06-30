@@ -146,9 +146,13 @@ command, or restart Claude Code so all tools inherit it).
   today). Surfaced + fixed a real crash on the way: tiktoken raised on the literal `<|endoftext|>`
   in OpenAI's spec — `lap/tokens.py` now encodes with `disallowed_special=()` (+regression test, 25
   passing).  `[no key]`
-- [ ] **▶ Stage 19 — Ship it.** CHANGELOG + version bump + a marketplace **GitHub Action**
-  (`lap-action`) + packaging polish; the owner publishes to PyPI + cuts a GitHub release.
-  _Done: release artifacts ready; (owner) published._  `[owner action]`
+- [x] **Stage 19 — Ship it (artifacts ready; owner publishes).** Done by the agent:
+  `CHANGELOG.md` (0.3.0), version bump `pyproject` `0.1.0 → 0.3.0` + classifiers + Changelog/
+  Leaderboard urls, a composite marketplace **GitHub Action** (`action.yml`, used as
+  `uses: lCrazyblindl/lap@v0.3.0`; README snippet), and [`RELEASING.md`](RELEASING.md) with the
+  owner's exact publish steps. **Remaining (owner, needs credentials):** `python -m build` →
+  `twine upload` to PyPI + `gh release create v0.3.0` (and "Publish this Action to the
+  Marketplace"). See `RELEASING.md`.  `[owner action]`
 
 ### Further backlog (unscheduled, key-free)
 estimate-C realism (use schema `examples`; configurable string length), caching economics
@@ -158,14 +162,16 @@ compact manifest), `lap score before after` diff mode, profile L0 "be-discoverab
 
 ## Status
 
-**v0.1 + v0.2 complete (stages 0–13); v0.3 in progress.** Done in v0.3: **Stage 16** (grouped
-≥2-per-category benchmark tasks + per-category averages + tests), **Stage 15(a)** (softened the
-profile's "validated" → "preliminary"), and **Stage 17** (fuzz over 175+ real APIs.guru specs →
-zero crashes; fixed Swagger 2.0 + non-JSON media-type degenerate output; +`fuzz_corpus.py` and a
-2.0 regression sample). **▶ Stage 18 (efficiency leaderboard — `docs/LEADERBOARD.md`, ≥15 real
-APIs, key-free).** Two stages are parked on external unblocks, do them whenever ready: **Stage 14**
-needs the owner GitHub rename (`LLMToHTTP` → `lap`); **Stage 15(b)** needs `ANTHROPIC_API_KEY` for
-the live success-rate matrix. Say "continue LAP" to run Stage 18.
+**v0.3 complete (stages 0–19) — all agent work done.** v0.3 delivered: finished the rename to
+`lap` (14); honest validation incl. a live **success-rate matrix** where compression didn't cost
+accuracy (15); grouped **≥2-per-category** benchmark tasks (16); a real-spec **fuzz corpus** +
+Swagger-2.0 / media-type parser fixes (17); the **20-API efficiency leaderboard** (18); and
+**release artifacts** — CHANGELOG, version `0.3.0`, a marketplace GitHub Action, `RELEASING.md`
+(19). **Only owner publish steps remain:** `python -m build` → `twine upload` to PyPI +
+`gh release create v0.3.0` (see [`RELEASING.md`](RELEASING.md)). Remaining open work is the
+key-free **backlog** below (estimate-C realism, caching economics, bucket-B estimate, NLWeb
+scoring, lint auto-fix, `score before after` diff, L0 "be-discoverable" rule, CONTRIBUTING) plus a
+**broader 15(b) matrix** (more models/tasks/repeats). Say "continue LAP" to pick one.
 
 ## Sources captured for Stage 1 (so it can be done without re-searching)
 

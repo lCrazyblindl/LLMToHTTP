@@ -1,0 +1,50 @@
+name: "LAP - token-efficiency score & lint"
+description: "Measure and gate the token-efficiency of an agent-facing OpenAPI spec (bucket-A menu cost + LAP rules)."
+branding:
+  icon: "bar-chart-2"
+  color: "purple"
+
+inputs:
+  spec:
+    description: "OpenAPI spec to check: a file path in the repo or an http(s) URL."
+    required: true
+  gate-form:
+    description: "Menu form the token gate measures (openapi_full | compact_sig | numbered | tool_search)."
+    required: false
+    default: "compact_sig"
+  max-menu-tokens:
+    description: "Fail if the gate-form menu exceeds this many tokens. Empty = report only, no gate."
+    required: false
+    default: ""
+  fail-on:
+    description: "Fail on lint findings at/above this severity (none | info | warn). Empty = report only."
+    required: false
+    default: ""
+
+runs:
+  using: "composite"
+  steps:
+    - uses: actions/setup-python@v5
+      with:
+        python-version: "3.11"
+    - name: Install lap
+      shell: bash
+      run: pip install lap-score || pip install "git+https://github.com/lCrazyblindl/lap.git"
+    - name: lap score
+      shell: bash
+      run: |
+        set -e
+        if [ -n "${{ inputs.max-menu-tokens }}" ]; then
+          lap score "${{ inputs.spec }}" --gate-form "${{ inputs.gate-form }}" --max-menu-tokens "${{ inputs.max-menu-tokens }}"
+        else
+          lap score "${{ inputs.spec }}"
+        fi
+    - name: lap lint
+      shell: bash
+      run: |
+        set -e
+        if [ -n "${{ inputs.fail-on }}" ]; then
+          lap lint "${{ inputs.spec }}" --fail-on "${{ inputs.fail-on }}"
+        else
+          lap lint "${{ inputs.spec }}"
+        fi
