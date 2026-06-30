@@ -50,6 +50,12 @@ output-schema-inclusive figure (`--no-mcp` to skip). On a real public API
 reduction. The toy finding holds in the wild: a real MCP generator is *heavier*
 than the naive baseline.
 
+The score also includes a lazy **`tool_search`** form (the Anthropic Tool Search /
+Cloudflare Code Mode pattern: a fixed 2-tool menu + a name index, schemas loaded on
+demand). Because it doesn't preload schemas, its bucket A is ~flat in the number of
+operations — on a 120-operation API it collapses the menu ~83% vs full schemas,
+beating even compact signatures at scale (Petstore: 1740 → 207, −88%).
+
 - **Faithful counts:** set `ANTHROPIC_API_KEY` (uses the free Anthropic `count_tokens`
   endpoint; tool defs counted via the real `tools=` parameter). Without it, a GPT-style
   `tiktoken` approximation — absolute numbers approximate, **relative ordering robust**.

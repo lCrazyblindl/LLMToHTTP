@@ -56,6 +56,7 @@ def gather(spec: dict, args) -> dict:
             mcp_error = repr(exc)
     menu_list.append(("compact_sig", a_cost["compact_sig"], "manifest text"))
     menu_list.append(("numbered", a_cost["numbered"], "manifest text"))
+    menu_list.append(("tool_search", a_cost["tool_search"], "2 lazy tools + name index"))
 
     ests = []
     for op in ops:
@@ -116,7 +117,7 @@ def main() -> None:
     ap.add_argument("--page-size", type=int, default=20,
                     help="assumed page size for the estimated result-size (bucket C)")
     ap.add_argument("--json", action="store_true", help="emit machine-readable JSON")
-    ap.add_argument("--gate-form", choices=["openapi_full", "compact_sig", "numbered"],
+    ap.add_argument("--gate-form", choices=["openapi_full", "compact_sig", "numbered", "tool_search"],
                     default="openapi_full", help="which menu form --max-menu-tokens checks")
     ap.add_argument("--max-menu-tokens", type=int,
                     help="CI gate: exit 1 if the gate-form menu exceeds this many tokens")

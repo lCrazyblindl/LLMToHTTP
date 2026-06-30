@@ -79,4 +79,30 @@ def numbered(spec: dict) -> tuple[list[dict], str]:
     return [], "\n".join(lines)
 
 
-MENUS = {"openapi_full": full, "compact_sig": compact, "numbered": numbered}
+_SEARCH_TOOL = {
+    "name": "search_tools",
+    "description": "Search this API's operations by keyword; returns matching names + schemas on demand.",
+    "input_schema": {"type": "object", "properties": {"query": {"type": "string"}}, "required": ["query"]},
+}
+_CALL_TOOL = {
+    "name": "call_tool",
+    "description": "Call an operation found via search_tools.",
+    "input_schema": {"type": "object",
+                     "properties": {"name": {"type": "string"}, "input": {"type": "object"}},
+                     "required": ["name"]},
+}
+
+
+def tool_search(spec: dict) -> tuple[list[dict], str]:
+    """Lazy-loading (search+execute) form: a fixed 2-tool menu plus a name-only
+    index. Full schemas load on demand, so bucket A is ~constant in the number of
+    operations instead of growing with every schema. (Anthropic Tool Search /
+    Cloudflare Code Mode pattern.)"""
+    names = ", ".join(op.name for op in ir.operations(spec))
+    text = ("# Lazy tools: search_tools(query) then call_tool(name, input). "
+            "Full schemas load on demand (not preloaded).\n"
+            f"# operations: {names}")
+    return [_SEARCH_TOOL, _CALL_TOOL], text
+
+
+MENUS = {"openapi_full": full, "compact_sig": compact, "numbered": numbered, "tool_search": tool_search}

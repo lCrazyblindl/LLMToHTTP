@@ -81,7 +81,7 @@ def test_token_backend_and_counts():
 # --- score -------------------------------------------------------------------
 def test_score_orders_compact_below_full(spec):
     a = score_mod.score(spec)
-    assert set(a) == {"openapi_full", "compact_sig", "numbered"}
+    assert {"openapi_full", "compact_sig", "numbered", "tool_search"} == set(a)
     assert a["compact_sig"] < a["openapi_full"]
     assert a["numbered"] < a["openapi_full"]
 
@@ -114,7 +114,7 @@ def test_gnarly_31_and_external_refs(gnarly):
 
 
 def test_gnarly_score_and_lint_run(gnarly):
-    assert set(score_mod.score(gnarly)) == {"openapi_full", "compact_sig", "numbered"}
+    assert {"openapi_full", "compact_sig", "numbered", "tool_search"} <= set(score_mod.score(gnarly))
     findings = lint.lint(gnarly)
     # GET /pets declares `limit` (pagination via a path-item-level param) -> no R3 there
     assert not any(f.rule == "R3" and f.where == "GET /pets" for f in findings)
@@ -146,3 +146,23 @@ def test_lint_filter_ignored(spec):
     assert any(f.rule == "R2" for f in findings)
     filtered = lint.filter_ignored(findings, {"R2"})
     assert all(f.rule != "R2" for f in filtered) and len(filtered) < len(findings)
+
+
+# --- tool_search collapses bucket A at scale (Stage 11) ---------------------
+def _big_spec(n: int) -> dict:
+    paths = {
+        f"/things{i}": {"get": {"operationId": f"listThings{i}", "responses": {"200": {
+            "content": {"application/json": {"schema": {
+                "type": "array", "items": {"$ref": "#/components/schemas/Thing"}}}}}}}}
+        for i in range(n)
+    }
+    return {"openapi": "3.0.0", "info": {"title": "Big"}, "paths": paths,
+            "components": {"schemas": {"Thing": {"type": "object", "properties": {
+                "id": {"type": "integer"}, "name": {"type": "string"},
+                "description": {"type": "string"}, "tags": {"type": "array", "items": {"type": "string"}}}}}}}
+
+
+def test_tool_search_collapses_at_scale():
+    a = score_mod.score(_big_spec(120))
+    assert a["tool_search"] < a["openapi_full"]
+    assert a["tool_search"] < a["compact_sig"]  # at scale, lazy beats even compact signatures

@@ -71,10 +71,11 @@ validation. Each is one bounded session. `[no key]` = doable without an API key.
   (structured output); `lap score --gate-form F --max-menu-tokens N` and `lap lint --fail-on
   warn` set a non-zero exit code; rule suppression via `--ignore R2,A1` or a `./.lapignore`
   file; GH Action snippet in the README. Exit codes verified; +2 tests (15).  `[no key]`
-- [ ] **▶ Stage 11 — `tool_search` menu form.** Add the lazy-loading (search+execute) form to
-  `lap score` to show the at-scale bucket-A collapse on large APIs. _Done: the form appears with
-  its reduction on a large spec._  `[no key]`
-- [ ] **Stage 12 — Score live MCP/NLWeb endpoints.** `lap score --mcp-url <url>` connects to a
+- [x] **Stage 11 — `tool_search` menu form.** Done: `lap/menu.py` `tool_search` (fixed
+  `search_tools`+`call_tool` + name index; schemas on demand) added to `lap score`. Its bucket A
+  is ~flat in #ops: Petstore 1740→207 (−88%), a synthetic 120-op API 3722→624 (−83%), beating
+  even compact at scale. +1 test (16). `[no key]`
+- [ ] **▶ Stage 12 — Score live MCP/NLWeb endpoints.** `lap score --mcp-url <url>` connects to a
   running MCP server (MCP client) and scores its advertised tools. _Done: scores ≥1 live MCP
   server._  `[no key]`
 - [ ] **Stage 13 (LAST) — Live success + faithful validation.** With `ANTHROPIC_API_KEY`: run
@@ -88,10 +89,10 @@ profile "L0 be-discoverable" rule (llms.txt / .well-known / NLWeb), CONTRIBUTING
 
 ## Status
 
-**v0.1 complete (stages 0–6).** On **v0.2** — **▶ Stage 11** (`tool_search` menu form).
-Stages 7–10 done (tests/CI/LICENSE; real-spec robustness; estimated bucket C; `--json` + CI
-gate). The live-key validation is intentionally **last** (Stage 13). Say "continue LAP" to run
-the next stage. (v0.1 owner-only follow-up: publish to PyPI + a GitHub release.)
+**v0.1 complete (stages 0–6).** On **v0.2** — **▶ Stage 12** (Score live MCP/NLWeb endpoints).
+Stages 7–11 done (tests/CI/LICENSE; robustness; estimated bucket C; `--json` + CI gate;
+`tool_search` form). The live-key validation is intentionally **last** (Stage 13). Say "continue
+LAP" to run the next stage. (v0.1 owner-only follow-up: publish to PyPI + a GitHub release.)
 
 ## Sources captured for Stage 1 (so it can be done without re-searching)
 
