@@ -95,16 +95,33 @@ command, or restart Claude Code so all tools inherit it).
 - [ ] **Stage 14 — Rename + rebrand to `lap`.** _(Parallel — waiting on the owner; verified
   2026-06-30 the repo is still public + not yet renamed.)_ Agent part **done**: README
   title/tagline + `CLAUDE.md` rebranded to `lap` (LLM-API Profile). **Remaining (owner):** GitHub
-  → Settings → rename `LLMToHTTP` → `lap` + set the description (no `gh`/token available to the
-  agent; GitHub auto-redirects old URLs, nothing breaks). After that: switch the CI-badge +
-  `pyproject` `[project.urls]` to `/lap`, and `git remote set-url origin .../lap.git`. _Done: repo
-  is `lap`, refs updated._  `[no key]`
+  → Settings → rename `LLMToHTTP` → `lap` + set the description (GitHub auto-redirects old URLs,
+  nothing breaks). After that: switch the CI-badge + `pyproject` `[project.urls]` to `/lap`, and
+  `git remote set-url origin .../lap.git`. _Done: repo is `lap`, refs updated._  `[no key]`
+  - **To let the agent do the rename itself, the owner provides ONE of:** (a) install GitHub CLI
+    + `gh auth login` (one-time, interactive; then the agent runs `gh repo rename lap` + `gh repo
+    edit --description ...`); (b) a GitHub token in env `GH_TOKEN` at User scope (classic `repo`
+    scope, or fine-grained Administration: write) — never pasted in chat — then restart so the
+    process inherits it, and the agent renames via the REST API. Probed 2026-06-30: `gh` absent,
+    no `GH_TOKEN`/`GITHUB_TOKEN`. Zero-credential fallback: owner renames in the web UI and the
+    agent flips the refs (no auth needed for that part).
+  - **Naming decision (owner asked to record):** keep the repo name **`lap`** — the umbrella
+    *toolkit*, not any one part — and let the **description enumerate all four deliverables incl.
+    the benchmark**, so the name matches the full implementation (not `lap-profile`/`lap-bench`,
+    which would privilege one part). Canonical description to apply at rename: **"lap — measure &
+    improve the token-efficiency of agent-facing APIs (OpenAPI & MCP): scorer, linter, the LAP
+    profile, and a reproducible token benchmark."** README tagline already lists all four.
 - [ ] **Stage 15 — Honest validation.** (a) **done** — the profile no longer says "validated";
   it now reads "preliminary / indicative, not yet a success rate" and points to the matrix as the
   next step. (b, pending) Real live matrix in token-bench: models (haiku/sonnet) × task categories
   × **repeats** (k≈3 → success *rates*) × **include `numbered`**; report rates, not one OK/FAIL;
   update the profile with the real evidence. _Done: a success-rate table over repeats incl.
   numbered._  `[key for the matrix]`
+  - **Effectively unblocked** — probed 2026-06-30: `ANTHROPIC_API_KEY` is already set at **User
+    scope** (only the running process lacks it, an inheritance quirk). To run: restart Claude Code
+    so tools inherit it, or the agent reads the User-scope value per-command (as in Stage 13). It
+    **spends real API tokens** on the owner's account, so confirm scope first; default Haiku +
+    bounded repeats keeps it cheap.
 - [x] **Stage 16 — Grouped, ≥2-per-category benchmark tasks.** Done: `tasks.py` now carries a
   `category` per task and has **10 tasks across the 5 categories** (write / aggregate-read /
   peek-read / multi-step / beyond-DSL), ≥2 each; `run_bench` prints a **per-category averages**
