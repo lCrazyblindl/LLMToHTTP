@@ -92,12 +92,10 @@ validation. Each is one bounded session. `[no key]` = doable without an API key.
 Same stop/resume model. `[key]` = needs `ANTHROPIC_API_KEY` (read the User-scope value into the
 command, or restart Claude Code so all tools inherit it).
 
-- [ ] **Stage 14 — Rename + rebrand to `lap`.** _(Parallel — waiting on the owner; verified
-  2026-06-30 the repo is still public + not yet renamed.)_ Agent part **done**: README
-  title/tagline + `CLAUDE.md` rebranded to `lap` (LLM-API Profile). **Remaining (owner):** GitHub
-  → Settings → rename `LLMToHTTP` → `lap` + set the description (GitHub auto-redirects old URLs,
-  nothing breaks). After that: switch the CI-badge + `pyproject` `[project.urls]` to `/lap`, and
-  `git remote set-url origin .../lap.git`. _Done: repo is `lap`, refs updated._  `[no key]`
+- [x] **Stage 14 — Rename + rebrand to `lap`.** _(Done 2026-06-30 — owner renamed the repo on
+  GitHub; agent pointed `origin`, the CI badge, and `pyproject` `[project.urls]` at `/lap`.)_
+  README title/tagline + `CLAUDE.md` were already rebranded to `lap` (LLM-API Profile). The local
+  folder stays `LLMToHTTP`; GitHub auto-redirects the old URL.  `[no key]`
   - **To let the agent do the rename itself, the owner provides ONE of:** (a) install GitHub CLI
     + `gh auth login` (one-time, interactive; then the agent runs `gh repo rename lap` + `gh repo
     edit --description ...`); (b) a GitHub token in env `GH_TOKEN` at User scope (classic `repo`

@@ -22,8 +22,8 @@ dev = ["pytest"]           # test suite
 lap = "lap.cli:main"
 
 [project.urls]
-Homepage = "https://github.com/lCrazyblindl/LLMToHTTP"
-Roadmap = "https://github.com/lCrazyblindl/LLMToHTTP/blob/main/ROADMAP.md"
+Homepage = "https://github.com/lCrazyblindl/lap"
+Roadmap = "https://github.com/lCrazyblindl/lap/blob/main/ROADMAP.md"
 
 [tool.setuptools]
 packages = ["lap"]

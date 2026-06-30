@@ -1,6 +1,6 @@
 # lap — LLM-API Profile
 
-[![ci](https://github.com/lCrazyblindl/LLMToHTTP/actions/workflows/ci.yml/badge.svg)](https://github.com/lCrazyblindl/LLMToHTTP/actions/workflows/ci.yml) · MIT licensed ([LICENSE](LICENSE))
+[![ci](https://github.com/lCrazyblindl/lap/actions/workflows/ci.yml/badge.svg)](https://github.com/lCrazyblindl/lap/actions/workflows/ci.yml) · MIT licensed ([LICENSE](LICENSE))
 
 **Measure and improve the token-efficiency of agent-facing APIs** (OpenAPI & MCP): a scorer (`lap score`), a linter (`lap lint`), a profile, and a benchmark.
 
