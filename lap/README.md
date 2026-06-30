@@ -54,6 +54,24 @@ than the naive baseline.
   endpoint; tool defs counted via the real `tools=` parameter). Without it, a GPT-style
   `tiktoken` approximation — absolute numbers approximate, **relative ordering robust**.
 
+## CI gate
+
+`--json` makes both commands machine-readable; thresholds set the exit code so LAP can fail a build:
+
+```bash
+lap score openapi.json --gate-form compact_sig --max-menu-tokens 800   # exit 1 if the menu is too heavy
+lap lint  openapi.json --fail-on warn                                  # exit 1 on any warning
+lap lint  openapi.json --ignore R2,A1                                  # suppress rules (or a ./.lapignore file)
+```
+
+GitHub Actions:
+
+```yaml
+- run: pip install lap-score          # or: pip install -e .
+- run: lap score api/openapi.json --gate-form compact_sig --max-menu-tokens 800
+- run: lap lint  api/openapi.json --fail-on warn
+```
+
 ## What it measures (and what it doesn't)
 
 It measures **bucket A** (the definitions/menu the model carries in context) and **estimates

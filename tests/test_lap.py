@@ -130,3 +130,19 @@ def test_estimate_list_heavier_than_object(spec):
     assert kind_list == "list" and kind_obj == "object"
     assert list_c > obj_c > 0
     assert list_c >= per * 20  # page multiplies the per-item cost
+
+
+# --- --json / CI gate (Stage 10) --------------------------------------------
+def test_score_gather_shape(spec):
+    from types import SimpleNamespace
+
+    res = score_mod.gather(spec, SimpleNamespace(source="x", no_mcp=True, page_size=20, model=None))
+    assert {"openapi_full", "compact_sig", "numbered"} <= {m["variant"] for m in res["menu"]}
+    assert res["estimated_c"] and res["compaction_pct"] > 0
+
+
+def test_lint_filter_ignored(spec):
+    findings = lint.lint(spec)
+    assert any(f.rule == "R2" for f in findings)
+    filtered = lint.filter_ignored(findings, {"R2"})
+    assert all(f.rule != "R2" for f in filtered) and len(filtered) < len(findings)

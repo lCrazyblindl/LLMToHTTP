@@ -9,6 +9,8 @@ costs for a human to confirm, each tied to a profile rule.
 
 from __future__ import annotations
 
+import json
+import os
 import re
 from dataclasses import dataclass
 
@@ -79,27 +81,28 @@ def lint(spec: dict) -> list[Finding]:
     return out
 
 
-def main() -> None:
-    import argparse
+def filter_ignored(findings: list[Finding], ignore) -> list[Finding]:
+    ignore = {r.upper() for r in ignore}
+    return [f for f in findings if f.rule.upper() not in ignore]
 
-    ap = argparse.ArgumentParser(description="Lint an OpenAPI against the LAP profile rules.")
-    ap.add_argument("source", help="OpenAPI spec: file path or http(s) URL")
-    args = ap.parse_args()
 
-    spec = ir.load_spec(args.source)
-    findings = lint(spec)
-    title = spec.get("info", {}).get("title", "(untitled API)")
-    print(f"\nLAP lint - {title}\nsource: {args.source}\n")
+def _load_ignore_file() -> set[str]:
+    if not os.path.exists(".lapignore"):
+        return set()
+    with open(".lapignore", encoding="utf-8") as fh:
+        toks = re.split(r"[,\s]+", fh.read())
+    return {t.strip().upper() for t in toks if t.strip() and not t.startswith("#")}
 
+
+def _print_human(title: str, source: str, findings: list[Finding], warns: int, infos: int) -> None:
+    print(f"\nLAP lint - {title}\nsource: {source}\n")
     if not findings:
         print("  No LAP rule violations detected. ✓\n")
         return
-
     order = {"warn": 0, "info": 1}
     by_rule: dict[str, list[Finding]] = {}
     for f in sorted(findings, key=lambda f: (order[f.severity], f.rule)):
         by_rule.setdefault(f"{f.severity.upper()} {f.rule}", []).append(f)
-
     for header, items in by_rule.items():
         print(f"  [{header}] {items[0].message.split(' - ')[0]}")
         for f in items[:6]:
@@ -107,10 +110,39 @@ def main() -> None:
         if len(items) > 6:
             print(f"      ... +{len(items) - 6} more")
         print()
+    print(f"  {warns} warning(s), {infos} suggestion(s). See profile/llm-api-profile.md for the rules.\n")
 
+
+def main() -> None:
+    import argparse
+
+    ap = argparse.ArgumentParser(description="Lint an OpenAPI against the LAP profile rules.")
+    ap.add_argument("source", help="OpenAPI spec: file path or http(s) URL")
+    ap.add_argument("--json", action="store_true", help="emit machine-readable JSON")
+    ap.add_argument("--ignore", default="", help="comma-separated rule codes to suppress (also reads ./.lapignore)")
+    ap.add_argument("--fail-on", choices=["none", "info", "warn"], default="none",
+                    help="CI gate: exit 1 if any finding at/above this severity remains")
+    args = ap.parse_args()
+
+    spec = ir.load_spec(args.source)
+    ignore = _load_ignore_file() | {r.strip() for r in args.ignore.split(",") if r.strip()}
+    findings = filter_ignored(lint(spec), ignore)
+    title = spec.get("info", {}).get("title", "(untitled API)")
     warns = sum(1 for f in findings if f.severity == "warn")
     infos = len(findings) - warns
-    print(f"  {warns} warning(s), {infos} suggestion(s). See profile/llm-api-profile.md for the rules.\n")
+
+    if args.json:
+        print(json.dumps({
+            "api": title, "source": args.source,
+            "findings": [{"rule": f.rule, "severity": f.severity, "where": f.where, "message": f.message}
+                         for f in findings],
+            "warnings": warns, "suggestions": infos,
+        }, indent=2))
+    else:
+        _print_human(title, args.source, findings, warns, infos)
+
+    if (args.fail_on == "warn" and warns) or (args.fail_on == "info" and findings):
+        raise SystemExit(1)
 
 
 if __name__ == "__main__":

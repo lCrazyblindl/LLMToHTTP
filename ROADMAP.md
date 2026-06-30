@@ -67,10 +67,11 @@ validation. Each is one bounded session. `[no key]` = doable without an API key.
   an instance from each success-response schema, counts its tokens, and (for arrays) multiplies
   by `--page-size`; `lap score` now prints an "Estimated result size (bucket C)" table flagging
   heavy lists (Petstore `GET /pet/findByStatus` ~785 tok/page vs ~39 for objects). +1 test (13).  `[no key]`
-- [ ] **▶ Stage 10 — `--json` output + CI gate.** Machine-readable `score`/`lint`; threshold
-  flags (`--max-menu-tokens`, `--fail-on warn`) + a rule-suppression config; a documented GH
-  Action snippet. _Done: `--json` emits structured output; thresholds set the exit code._  `[no key]`
-- [ ] **Stage 11 — `tool_search` menu form.** Add the lazy-loading (search+execute) form to
+- [x] **Stage 10 — `--json` output + CI gate.** Done: `lap score`/`lap lint` take `--json`
+  (structured output); `lap score --gate-form F --max-menu-tokens N` and `lap lint --fail-on
+  warn` set a non-zero exit code; rule suppression via `--ignore R2,A1` or a `./.lapignore`
+  file; GH Action snippet in the README. Exit codes verified; +2 tests (15).  `[no key]`
+- [ ] **▶ Stage 11 — `tool_search` menu form.** Add the lazy-loading (search+execute) form to
   `lap score` to show the at-scale bucket-A collapse on large APIs. _Done: the form appears with
   its reduction on a large spec._  `[no key]`
 - [ ] **Stage 12 — Score live MCP/NLWeb endpoints.** `lap score --mcp-url <url>` connects to a
@@ -87,10 +88,10 @@ profile "L0 be-discoverable" rule (llms.txt / .well-known / NLWeb), CONTRIBUTING
 
 ## Status
 
-**v0.1 complete (stages 0–6).** On **v0.2** — **▶ Stage 10** (`--json` output + CI gate).
-Stages 7–9 done (tests/CI/LICENSE; real-spec robustness; estimated bucket C). The live-key
-validation is intentionally **last** (Stage 13). Say "continue LAP" to run the next stage.
-(v0.1 owner-only follow-up: publish to PyPI + a GitHub release.)
+**v0.1 complete (stages 0–6).** On **v0.2** — **▶ Stage 11** (`tool_search` menu form).
+Stages 7–10 done (tests/CI/LICENSE; real-spec robustness; estimated bucket C; `--json` + CI
+gate). The live-key validation is intentionally **last** (Stage 13). Say "continue LAP" to run
+the next stage. (v0.1 owner-only follow-up: publish to PyPI + a GitHub release.)
 
 ## Sources captured for Stage 1 (so it can be done without re-searching)
 
