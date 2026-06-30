@@ -2,8 +2,9 @@
 
 `lap` is the open, neutral, standalone toolkit (no pet-zoo dependency) that measures
 how many **tokens** an API's definitions cost an LLM. It answers: *is my agent-API
-menu efficient, and by how much could it shrink?* — the reproducible number the
-agentic-web ecosystem lacks (see [`../docs/LANDSCAPE.md`](../docs/LANDSCAPE.md)).
+menu efficient, and by how much could it shrink?* — an open, reproducible number to set
+beside the fast-growing MCP/OpenAPI tooling (see [`../docs/LANDSCAPE.md`](../docs/LANDSCAPE.md)
+for the neighbors LAP builds on and credits).
 
 ## Install
 

@@ -30,6 +30,6 @@ _Generated 2026-06-30 by [`experiments/leaderboard.py`](../experiments/leaderboa
 | 19 | Spotify Web API | spotify.com | 88 | 8395 | 2557 | +70% | 698 | +92% |
 | 20 | Notion API | notion.com | 13 | 1587 | 168 | +89% | 197 | +88% |
 
-**Across all 20 APIs:** the naive menus total **4,865,224 tokens**; `compact_sig` saves **+86%** on average and `tool_search` **+96%** (it wins most where operation counts are high). None of these APIs ships a compact agent menu today — the savings are unclaimed.
+**Across all 20 APIs:** the naive menus total **4,865,224 tokens**; `compact_sig` saves **+86%** on average and `tool_search` **+96%** (it wins most where operation counts are high). These APIs expose OpenAPI, which a generic bridge turns into the naive menu — so for an agent front-end that saving is mostly still on the table.
 
 _Methodology: bucket A only (the menu in context). B (the call) and C (results) need per-API tasks — see [`experiments/token-bench`](../experiments/token-bench/README.md). Regenerate with `python experiments/leaderboard.py`._

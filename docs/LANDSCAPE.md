@@ -52,13 +52,39 @@ is attacking both, hard.
   **SEP-1576** (token-bloat mitigation: schema dedup, embedding tool-select, progressive
   disclosure).
 
-## The gap LAP fills
+### 6. Token-efficiency tooling — the closest neighbors to LAP
 
-Across all of the above, one thing is conspicuously absent: a **neutral, reproducible way
-to measure how token-efficient a given agent-interface actually is**, decomposed and
-comparable. Each vendor cites its own headline number on its own setup; SEP-1576 names the
-problem but ships no measuring stick. There is no "is my agent-API efficient, and by how
-much, versus the alternatives?" — per task, per bucket.
+The measure/optimize space filled in fast through 2025–2026. An honest map of what already
+exists (LAP builds on, credits, and overlaps some of these — it is **not first or only**):
+- **Live MCP token counters** — e.g. the browser-based *MCP Token Counter*: paste a server
+  URL, get per-tool token counts ranked largest-first. Measures bucket A for a **live MCP
+  server**; doesn't work offline from OpenAPI, doesn't lint, estimate results (C), gate CI, or
+  compare multiple APIs.
+- **Vendor benchmarks & guides** — StackOne "4 approaches compared", Speakeasy "dynamic
+  toolsets (−100×)", Pydantic "engineering MCP tools for token efficiency", Apollo GraphQL MCP.
+  Strong decision frameworks and product numbers — articles/products, not a reusable neutral
+  measure.
+- **Runtime gateways / proxies** — StackOne, Speakeasy, getmaxim, Atlassian `mcp-compressor`:
+  compress/filter tool schemas and responses at request time. (The "gateway" layer LAP
+  deliberately does **not** rebuild.)
+- **OpenAPI minifiers for LLMs** — e.g. `LLM-OpenAPI-minifier`: shrink a spec's *characters*
+  for prompt-stuffing. (LAP optimizes *tokens*, and keeps readable names as signal.)
+- **General API linters** — Spectral / vacuum: the de-facto OpenAPI linters with CI + custom
+  rulesets, but **no token-efficiency ruleset** ships today — an opportunity: LAP's rules could
+  be distributed as one.
+- **Token/agent leaderboards** — Tokscale, llm-stats, Artificial Analysis rank **models and
+  coding agents** by token use, not the token cost of specific **APIs'** agent menus.
+
+## Where LAP fits (not first, not only — a different combination)
+
+The neighbors in §6 each measure or optimize *pieces*: a live-MCP token counter (bucket A
+only), vendor benchmarks (articles on their own setups), runtime gateways (the layer LAP
+doesn't rebuild), minifiers (characters, not tokens), Spectral/vacuum (linting, but no
+token-efficiency ruleset). What no single one offers is the **open, OpenAPI-native,
+CI-friendly combination**: score the menu (A) *and* estimate the result (C) from a static spec
+or a live MCP server, **lint** it against measured rules, gate a build, and publish a
+**standing, reproducible leaderboard of real APIs**. LAP aims to be that shared yardstick —
+complementary to everything above, crediting the techniques it builds on.
 
 | layer | well-covered by | LAP |
 |---|---|---|
@@ -66,27 +92,31 @@ much, versus the alternatives?" — per task, per bucket.
 | interface / access | MCP, generators, code-exec, GraphQL | references, doesn't rebuild |
 | gateways + auth | AWS / Hypr / atrawog, OAuth 2.1 + DCR | references, doesn't rebuild |
 | identity | NIST, IETF, A2A | references, doesn't rebuild |
-| **efficiency measurement** | **— (nobody, neutrally)** | **← LAP's niche** |
+| **efficiency measurement + linting** | partial: live-MCP counters, vendor benchmarks, Spectral (no token rules) | **the open, OpenAPI-native, CI + leaderboard combination ← LAP** |
 
 ## LAP's niche
 
-LAP is the **measurement + guidance** layer:
-- **token-bench** — point it at an interface, get its cost in three buckets (**A**
-  definitions, **B** call, **C** result), comparable across variants (plain/real MCP,
-  compact, query, code…).
+LAP is the open **measurement + guidance** layer:
+- **`lap score`** — bucket-A menu cost (+ a real-MCP baseline, + a bucket-C result-size
+  estimate) for any OpenAPI file/URL or a live MCP server, across naive / compact / numbered /
+  tool_search forms; `--json` + a CI gate.
+- **`lap lint`** — flags violations of measured rules (D3 / R1 / R2 / R3 / W1 / E1 / A1) with
+  citations.
+- **token-bench** — the full A/B/C run with tasks + a live success-rate check.
 - **the LAP profile** ([`../profile/llm-api-profile.md`](../profile/llm-api-profile.md)) —
-  measured, opinionated conventions (compact familiar discovery, minimal writes,
-  shaped/aggregated reads, code escape hatch) for token-efficient APIs.
-- planned: `lap score` / `lap lint` — a conformance score + concrete, measured fixes for any
-  OpenAPI / MCP / NLWeb interface.
+  measured, opinionated conventions for token-efficient APIs.
+- **[`LEADERBOARD.md`](LEADERBOARD.md)** — a standing, reproducible ranking of real public
+  APIs' menu cost.
 
 **Explicit non-goals:** LAP does not build auth brokers, gateways, discovery registries,
 hosting, or agent identity — those are covered above. LAP measures and guides; it cites the rest.
 
 ## Why it helps everyone
 
-Anyone building on MCP/NLWeb wants their agent-API fast and cheap, but has no neutral
-yardstick. LAP gives the ecosystem a shared, reproducible one — a public good, not a product.
+Anyone building on MCP/NLWeb wants their agent-API fast and cheap. Plenty of good tools and
+posts help (§6); LAP's contribution is an **open, reproducible, vendor-neutral** way to measure
+and lint it in CI, plus a public dataset — a public good, not a product. We stand on the
+techniques above and credit them.
 
 ## Sources
 
@@ -97,3 +127,4 @@ yardstick. LAP gives the ecosystem a shared, reproducible one — a public good,
 - Efficiency: Anthropic code-exec https://www.anthropic.com/engineering/code-execution-with-mcp · Cloudflare Code Mode https://blog.cloudflare.com/code-mode-mcp/ · MCP SEP-1576 https://github.com/modelcontextprotocol/modelcontextprotocol/issues/1576
 - OpenAPI→MCP: Speakeasy https://www.speakeasy.com/blog/generate-mcp-from-openapi · FastMCP https://gofastmcp.com/integrations/openapi
 - GraphQL for agents: Apollo https://www.apollographql.com/blog/building-efficient-ai-agents-with-graphql-and-apollo-mcp-server
+- Token-efficiency neighbors (§6): MCP Token Counter https://mcpplaygroundonline.com/blog/mcp-token-counter-optimize-context-window · StackOne https://www.stackone.com/blog/mcp-token-optimization/ · Speakeasy dynamic toolsets https://www.speakeasy.com/blog/how-we-reduced-token-usage-by-100x-dynamic-toolsets-v2 · Pydantic https://pydantic.dev/articles/engineering-mcp-tools-for-token-efficiency · LLM-OpenAPI-minifier https://github.com/ShelbyJenkins/LLM-OpenAPI-minifier · Spectral https://github.com/stoplightio/spectral · vacuum https://github.com/daveshanley/vacuum · Tokscale https://github.com/junhoyeo/tokscale

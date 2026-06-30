@@ -133,8 +133,9 @@ def main() -> None:
             "",
             f"**Across all {len(rows)} APIs:** the naive menus total **{total_full:,} tokens**; "
             f"`compact_sig` saves **+{avg_compact}%** on average and `tool_search` **+{avg_search}%** "
-            "(it wins most where operation counts are high). None of these APIs ships a compact "
-            "agent menu today — the savings are unclaimed.",
+            "(it wins most where operation counts are high). These APIs expose OpenAPI, which a "
+            "generic bridge turns into the naive menu — so for an agent front-end that saving is "
+            "mostly still on the table.",
             "",
             "_Methodology: bucket A only (the menu in context). B (the call) and C (results) need "
             "per-API tasks — see [`experiments/token-bench`](../experiments/token-bench/README.md). "

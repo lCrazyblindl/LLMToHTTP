@@ -2,8 +2,9 @@
 
 **What this is:** the staged plan for **LAP**, an open, neutral toolkit that measures
 the token cost of agent-facing APIs (A/B/C buckets) and scores them against the LAP
-profile. Positioned as the **efficiency-measurement + guidance layer** the ecosystem
-lacks — complementary to MCP/NLWeb, **not** a rebuild of gateways/auth/discovery
+profile. Positioned as an open, reproducible **efficiency-measurement + guidance layer** —
+complementary to MCP/NLWeb (and to the token-efficiency tools it credits), **not** a rebuild
+of gateways/auth/discovery
 (those are already covered by Microsoft NLWeb, AWS/Hypr MCP gateways, NIST/IETF auth).
 
 **How to resume (future sessions):** read this file, find the **▶** stage, do it, tick
@@ -142,8 +143,9 @@ command, or restart Claude Code so all tools inherit it).
 - [x] **Stage 18 — Efficiency leaderboard.** Done: `experiments/leaderboard.py` scores real public
   APIs from APIs.guru and writes [`docs/LEADERBOARD.md`](docs/LEADERBOARD.md) — **20 APIs** ranked by
   naive agent-menu (bucket A) cost: Kubernetes 2.82M tokens, EC2 606k, Jira 346k, Stripe 232k, …;
-  naive menus total ~4.9M, `compact_sig` saves ~86% on average and `tool_search` ~96% (unclaimed
-  today). Surfaced + fixed a real crash on the way: tiktoken raised on the literal `<|endoftext|>`
+  naive menus total ~4.9M, `compact_sig` saves ~86% on average and `tool_search` ~96% (mostly
+  still on the table for agent front-ends). Surfaced + fixed a real crash on the way: tiktoken
+  raised on the literal `<|endoftext|>`
   in OpenAI's spec — `lap/tokens.py` now encodes with `disallowed_special=()` (+regression test, 25
   passing).  `[no key]`
 - [x] **Stage 19 — Ship it (artifacts ready; owner publishes).** Done by the agent:
@@ -155,6 +157,8 @@ command, or restart Claude Code so all tools inherit it).
   Marketplace"). See `RELEASING.md`.  `[owner action]`
 
 ### Further backlog (unscheduled, key-free)
+**LAP rules as a Spectral / vacuum ruleset** (ride the de-facto OpenAPI linter for distribution
+instead of only a standalone `lap lint`), a short **Related work / credit** note in the README,
 estimate-C realism (use schema `examples`; configurable string length), caching economics
 (first-call vs amortized A), bucket-B estimate, NLWeb endpoint scoring, lint auto-fix (emit a
 compact manifest), `lap score before after` diff mode, profile L0 "be-discoverable" rule
