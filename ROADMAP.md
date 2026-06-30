@@ -92,23 +92,28 @@ validation. Each is one bounded session. `[no key]` = doable without an API key.
 Same stop/resume model. `[key]` = needs `ANTHROPIC_API_KEY` (read the User-scope value into the
 command, or restart Claude Code so all tools inherit it).
 
-- [ ] **▶ Stage 14 — Rename + rebrand to `lap`.** Agent part **done**: README title/tagline +
-  `CLAUDE.md` rebranded to `lap` (LLM-API Profile). **Remaining (owner):** GitHub → Settings →
-  rename `LLMToHTTP` → `lap` + set the description (no `gh`/token available to the agent; GitHub
-  auto-redirects old URLs, nothing breaks). After that: switch the CI-badge + `pyproject`
-  `[project.urls]` to `/lap`, and `git remote set-url origin .../lap.git`. _Done: repo is `lap`,
-  refs updated._  `[no key]`
-- [ ] **Stage 15 — Honest validation.** (a, free) soften the profile's "validated" to
-  "preliminary". (b) Real live matrix in token-bench: models (haiku/sonnet) × task categories ×
-  **repeats** (k≈3 → success *rates*) × **include `numbered`**; report rates, not one OK/FAIL;
+- [ ] **Stage 14 — Rename + rebrand to `lap`.** _(Parallel — waiting on the owner; verified
+  2026-06-30 the repo is still public + not yet renamed.)_ Agent part **done**: README
+  title/tagline + `CLAUDE.md` rebranded to `lap` (LLM-API Profile). **Remaining (owner):** GitHub
+  → Settings → rename `LLMToHTTP` → `lap` + set the description (no `gh`/token available to the
+  agent; GitHub auto-redirects old URLs, nothing breaks). After that: switch the CI-badge +
+  `pyproject` `[project.urls]` to `/lap`, and `git remote set-url origin .../lap.git`. _Done: repo
+  is `lap`, refs updated._  `[no key]`
+- [ ] **Stage 15 — Honest validation.** (a) **done** — the profile no longer says "validated";
+  it now reads "preliminary / indicative, not yet a success rate" and points to the matrix as the
+  next step. (b, pending) Real live matrix in token-bench: models (haiku/sonnet) × task categories
+  × **repeats** (k≈3 → success *rates*) × **include `numbered`**; report rates, not one OK/FAIL;
   update the profile with the real evidence. _Done: a success-rate table over repeats incl.
   numbered._  `[key for the matrix]`
-- [ ] **Stage 16 — Grouped, ≥2-per-category benchmark tasks.** Restructure
-  `experiments/token-bench/tasks.py` into categories — **write / aggregate-read / peek-read /
-  multi-step / beyond-DSL** — with **≥2 tasks each** (add a 2nd per category); make `run_bench`
-  group + average per category so no conclusion rests on a single task. Add tests. _Done: ≥2
-  tasks/category + per-category averages in results.md._  `[no key]`
-- [ ] **Stage 17 — Fuzz on a real-spec corpus.** Run `lap score`/`lap lint` over many real specs
+- [x] **Stage 16 — Grouped, ≥2-per-category benchmark tasks.** Done: `tasks.py` now carries a
+  `category` per task and has **10 tasks across the 5 categories** (write / aggregate-read /
+  peek-read / multi-step / beyond-DSL), ≥2 each; `run_bench` prints a **per-category averages**
+  table (mean A+B+C vs baseline) ahead of the per-task tables; `results.md` regenerated (the prior
+  faithful+live run kept as `results-faithful.md`). +4 bench tests (`test_bench_tasks.py`, guarded
+  by `importorskip("fastapi")` so package CI skips it) — full suite 21 passing. The DSL gap holds
+  as a category average: code_exec ~92% on beyond-DSL vs odata_query ~78% (it must project all
+  rows for avg/argmax over a computed property).  `[no key]`
+- [ ] **▶ Stage 17 — Fuzz on a real-spec corpus.** Run `lap score`/`lap lint` over many real specs
   (e.g. APIs.guru) and assert no crashes + sane output; fix the parser long-tail
   (`discriminator`, webhooks, deep nesting). _Done: a corpus run is clean; bugs fixed + a
   regression sample._  `[no key]`
@@ -127,10 +132,12 @@ compact manifest), `lap score before after` diff mode, profile L0 "be-discoverab
 
 ## Status
 
-**v0.1 + v0.2 complete & validated (stages 0–13).** Now on **v0.3** — **▶ Stage 14 (rename +
-rebrand to `lap`)**. The GitHub rename itself is an owner step (no `gh`/token available to the
-agent); everything else proceeds via the usual stop/resume. Say "continue LAP" to run the next
-stage.
+**v0.1 + v0.2 complete (stages 0–13); v0.3 in progress.** Done in v0.3: **Stage 16** (grouped
+≥2-per-category benchmark tasks + per-category averages + tests) and **Stage 15(a)** (softened the
+profile's "validated" → "preliminary"). **▶ Stage 17 (fuzz on a real-spec corpus).** Two stages are
+parked on external unblocks, do them whenever ready: **Stage 14** needs the owner GitHub rename
+(`LLMToHTTP` → `lap`); **Stage 15(b)** needs `ANTHROPIC_API_KEY` for the live success-rate matrix.
+Say "continue LAP" to run Stage 17.
 
 ## Sources captured for Stage 1 (so it can be done without re-searching)
 

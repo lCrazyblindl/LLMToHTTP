@@ -89,6 +89,10 @@ Output goes to stdout and `results.md`.
   isn't expressible in the DSL, so `odata_query` can only project (C=561, all 50 rows)
   while `code_exec` computes it server-side (C=13). The query approach degrades from
   ~tied to clearly behind — extend the DSL (toward a language) or fall back to code.
+- **Per-category averages:** `run_bench` prints a mean total per category, so each
+  takeaway is averaged over ≥2 tasks. The DSL gap shows there too — `odata_query` saves
+  ~85-91% on the shaped categories but only ~78% on **beyond-DSL** (avg / argmax over a
+  computed property), where `code_exec` still saves ~92%.
 
 ## Files
 
@@ -96,8 +100,8 @@ Output goes to stdout and `results.md`.
 | --- | --- |
 | `spec_source.py` | loads pet-zoo as a library; OpenAPI → normalized ops; seeded TestClient |
 | `tokens.py` | token counting (Anthropic endpoint, or tiktoken approx) |
-| `variants/` | the five interface generators |
-| `tasks.py` | T1 create / T2 count-females / T3 count-per-species / T4 peek-one / T5 longest-name (DSL gap), with real bodies + a declarative `query` each |
+| `variants/` | the six interface generators (one per row in "Variants compared") |
+| `tasks.py` | 10 tasks in 5 categories (write / aggregate-read / peek-read / multi-step / beyond-DSL), ≥2 each, with real bodies + a declarative `query` each |
 | `zoo_client.py` | generates the `code_exec` client + its doc from the IR (one source) |
 | `query_engine.py` | runs `odata_query` queries server-side (filter/select/top/count/aggregate + minimal create) |
 | `sandbox.py` + `sandbox_runner.py` | process-isolated execution of `code_exec` scripts |

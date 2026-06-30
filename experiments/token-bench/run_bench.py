@@ -127,25 +127,59 @@ def main() -> None:
     blocks.append("## Bucket A - menu cost (paid ~once per session)\n\n"
                   + md_table(["variant", "A tokens", "saved vs base", "form"], a_rows))
 
-    # --- Per-task tables: A / B / C / total ------------------------------------
+    # --- Per-task tables + per-category accumulation ----------------------------
+    task_blocks: list[str] = []
+    cat_order: list[str] = []
+    cat_tasks: dict[str, list] = {}
+    totals: dict[tuple[str, str], list[int]] = {}  # (category, variant) -> [total, ...]
     for task in tasks:
+        if task.category not in cat_tasks:
+            cat_tasks[task.category] = []
+            cat_order.append(task.category)
+        cat_tasks[task.category].append(task)
+
         rows = []
         base_total = None
+        per_total: dict[str, int] = {}
         for v in V.ALL:
             A = a_cost[v.name]
             B = tk.count(v.encode_calls(task))
             C = tk.count(dumps(v.result_payload(task)))
             total = A + B + C
+            per_total[v.name] = total
             if v.name == base:
                 base_total = total
-            rows.append([v.name, A, B, C, total, pct(total, base_total) if base_total else "-"])
+            rows.append([v.name, A, B, C, total, "-"])
         # fix the vs-baseline column now that base_total is known
         for r in rows:
             r[5] = pct(r[4], base_total)
-        blocks.append(
+        for v in V.ALL:
+            totals.setdefault((task.category, v.name), []).append(per_total[v.name])
+        task_blocks.append(
             f"## {task.name} - \"{task.prompt}\"\n\n"
             + md_table(["variant", "A", "B call", "C result", "total", "saved vs base"], rows)
         )
+
+    # --- Per-category averages (so no conclusion rests on a single task) --------
+    def _avg(xs: list[int]) -> int:
+        return round(sum(xs) / len(xs))
+
+    cat_rows = []
+    for cat in cat_order:
+        base_avg = _avg(totals[(cat, base)])
+        cells = [f"{cat} (n={len(cat_tasks[cat])})"]
+        for v in V.ALL:
+            avg = _avg(totals[(cat, v.name)])
+            cells.append(f"{avg} ({pct(avg, base_avg)})")
+        cat_rows.append(cells)
+    blocks.append(
+        "## Per-category averages - mean total tokens over each category's tasks\n\n"
+        "Each cell is the mean A+B+C total across that category's tasks, with the "
+        f"saving vs the `{base}` baseline. Averaging >=2 tasks per category keeps any "
+        "single task from carrying a conclusion.\n\n"
+        + md_table(["category"] + [v.name for v in V.ALL], cat_rows)
+    )
+    blocks.extend(task_blocks)
 
     if args.live:
         try:

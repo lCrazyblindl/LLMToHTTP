@@ -67,8 +67,8 @@ def _exec_tool(variant: V.Variant, name: str, tool_input: dict, client) -> str:
 
 
 def _expected(task: Task) -> list[str]:
-    if task.name.startswith("T1"):
-        return ["Bobo"]
+    if task.expect is not None:  # e.g. writes: check the created name, not the whole echo
+        return task.expect
     fv = task.final_value
     return [str(v) for v in fv.values()] if isinstance(fv, dict) else [str(fv)]
 
