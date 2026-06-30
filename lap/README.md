@@ -15,7 +15,10 @@ pip install -e ".[faithful]"      # + faithful Anthropic count_tokens
 
 Core deps are just `httpx` + `tiktoken` + `pyyaml`; `fastmcp` and `anthropic` are optional extras.
 Robust to real specs: `allOf`/`oneOf`/`anyOf`, `$ref` in params/requestBodies/responses,
-path-item-level parameters, OpenAPI 3.1 `type` lists, external `$ref`s (left intact), and YAML input.
+path-item-level parameters, OpenAPI 3.1 `type` lists, external `$ref`s (left intact), YAML input,
+**Swagger/OpenAPI 2.0** (response `schema`, `in: body` params, type-on-parameter, `#/definitions`),
+and non-JSON media types (`*+json`, form, XML). Verified crash-free + non-degenerate across 175+
+real APIs.guru specs — re-run with [`../experiments/fuzz_corpus.py`](../experiments/fuzz_corpus.py).
 
 ## Quickstart
 
@@ -100,4 +103,4 @@ behind the compact form are the [LAP profile](../profile/llm-api-profile.md).
 | `tokens.py` | token counting (Anthropic endpoint, or tiktoken approx) |
 | `score.py` | the `lap score` CLI |
 | `lint.py` | the `lap lint` CLI — checks a spec against the LAP profile rules (D3/R1/R2/R3/W1/E1/A1) |
-| `examples/` | sample specs: a non-pet-zoo Bookstore API + a gnarly OpenAPI 3.1 (allOf / $ref-params / nullable / external-ref) |
+| `examples/` | sample specs: a Bookstore API, a gnarly OpenAPI 3.1 (allOf / $ref-params / nullable / external-ref), and a Swagger 2.0 spec (`swagger2.json`) |

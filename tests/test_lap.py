@@ -168,6 +168,64 @@ def test_tool_search_collapses_at_scale():
     assert a["tool_search"] < a["compact_sig"]  # at scale, lazy beats even compact signatures
 
 
+# --- Swagger/OpenAPI 2.0 + media-type fallback: sane output (Stage 17) -------
+SWAGGER2_PATH = Path(__file__).resolve().parents[1] / "lap" / "examples" / "swagger2.json"
+
+
+@pytest.fixture(scope="module")
+def swagger2() -> dict:
+    return ir.load_spec(str(SWAGGER2_PATH))
+
+
+def test_swagger2_returns_and_body(swagger2):
+    # 2.0 puts the response schema under `response.schema` and the body in an
+    # `in: body` parameter; the IR must read both (not report void / empty body).
+    ops = {op.name: op for op in ir.operations(swagger2)}
+    assert ops["listPets"].returns == "Pet[]"  # 2.0 array response
+    assert ops["getPet"].returns == "Pet"
+    assert ops["getPet"].path_params == [("petId", "int")]
+    assert ops["createPet"].returns == "Pet"  # not "void"
+    assert {"name", "status"} <= {f[0] for f in ops["createPet"].body_fields}  # in: body schema
+
+
+def test_swagger2_type_block_resolves_definitions(swagger2):
+    _, text = menu.compact(swagger2)
+    assert "type Pet = {" in text
+    assert "id:" in text and "status:" in text  # #/definitions/... resolved, block not empty
+
+
+def test_swagger2_lint_and_estimate(swagger2):
+    from lap import estimate
+
+    findings = lint.lint(swagger2)
+    rules = {f.rule for f in findings}
+    assert "W1" in rules  # createPet returns the full Pet representation
+    assert any(f.rule == "R3" and f.where == "GET /pets" for f in findings)  # collection, no paging
+    ops = {op.name: op for op in ir.operations(swagger2)}
+    kind, _per, c = estimate.estimate(swagger2, ops["listPets"], page_size=20)
+    assert kind == "list" and c > 0  # bucket-C estimate works on 2.0 now
+
+
+def test_content_media_type_fallback():
+    # Non-application/json media types (form body, vnd.api+json response) must
+    # still yield a schema, so JSON-ish and XML/form APIs aren't seen as empty.
+    spec = {
+        "openapi": "3.0.0", "info": {"title": "Media"},
+        "paths": {"/things": {"post": {
+            "operationId": "makeThing",
+            "requestBody": {"content": {"application/x-www-form-urlencoded": {
+                "schema": {"type": "object", "properties": {"q": {"type": "string"}}}}}},
+            "responses": {"201": {"content": {"application/vnd.api+json": {
+                "schema": {"$ref": "#/components/schemas/Thing"}}}}},
+        }}},
+        "components": {"schemas": {"Thing": {"type": "object",
+                                             "properties": {"id": {"type": "integer"}}}}},
+    }
+    op = ir.operations(spec)[0]
+    assert op.returns == "Thing"  # */*+json response picked up
+    assert {"q"} <= {f[0] for f in op.body_fields}  # form-encoded body picked up
+
+
 # --- score a live MCP server's advertised tools (Stage 12) ------------------
 def test_mcp_client_scores_live_server():
     pytest.importorskip("fastmcp")

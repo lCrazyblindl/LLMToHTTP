@@ -49,13 +49,8 @@ def example_instance(spec: dict, schema, stack: frozenset = frozenset(), depth: 
 
 
 def _success_schema(spec: dict, op: ir.Op):
-    responses = op.raw.get("responses", {})
-    for code in ("200", "201", "202"):
-        resp = ir._deref(spec, responses.get(code, {}))
-        schema = resp.get("content", {}).get("application/json", {}).get("schema")
-        if isinstance(schema, dict):
-            return schema
-    return None
+    # OpenAPI 3 (`content`) and 2.0 (`schema`), JSON-ish media types — see ir._response_schema.
+    return ir._response_schema(spec, op.raw)
 
 
 def _dumps(value) -> str:

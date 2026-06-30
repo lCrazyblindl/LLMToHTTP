@@ -113,11 +113,20 @@ command, or restart Claude Code so all tools inherit it).
   by `importorskip("fastapi")` so package CI skips it) — full suite 21 passing. The DSL gap holds
   as a category average: code_exec ~92% on beyond-DSL vs odata_query ~78% (it must project all
   rows for avg/argmax over a computed property).  `[no key]`
-- [ ] **▶ Stage 17 — Fuzz on a real-spec corpus.** Run `lap score`/`lap lint` over many real specs
-  (e.g. APIs.guru) and assert no crashes + sane output; fix the parser long-tail
-  (`discriminator`, webhooks, deep nesting). _Done: a corpus run is clean; bugs fixed + a
-  regression sample._  `[no key]`
-- [ ] **Stage 18 — Efficiency leaderboard.** Score N real public APIs (Stripe/GitHub/Slack/
+- [x] **Stage 17 — Fuzz on a real-spec corpus.** Done: `experiments/fuzz_corpus.py` runs the whole
+  parser surface (IR + all menus via `score` + `lint` + bucket-C estimate) over APIs.guru. **175+
+  real specs across two random seeds + a curated gnarly set (Stripe, GitHub 845 ops, Kubernetes,
+  EC2 1182 ops, Jira, Azure, googleapis compute) → zero crashes** — the named long-tail
+  (`discriminator`, webhooks, deep nesting, 1000+ ops) was already crash-robust (Stage 8). The real
+  gap was **degenerate output, not crashes**: Swagger/OpenAPI **2.0** specs (~25% of the corpus, e.g.
+  kubernetes/azure) reported every op as `returns=void`, empty body, no W1/R* — because 2.0 puts the
+  response schema under `response.schema` (not `content`) and the body in an `in: body` param; some
+  3.0 specs (EC2) were void too (responses are `text/xml`, not `application/json`). Fixed in
+  `openapi_ir.py` (additive, 3.x unchanged): a JSON-ish **media-type fallback** (`*+json`/form/xml),
+  **2.0 response `schema`**, **2.0 `in: body` params**, type-on-parameter, and `#/definitions` type
+  blocks. Regression sample `lap/examples/swagger2.json` + 4 tests (25 passing); k8s went from 0
+  findings to 284, EC2 returns 0→1070.  `[no key]`
+- [ ] **▶ Stage 18 — Efficiency leaderboard.** Score N real public APIs (Stripe/GitHub/Slack/
   Notion/…) — bucket A is free — and publish `docs/LEADERBOARD.md`: a ranked table of agent-API
   token-efficiency (a neutral public dataset). _Done: leaderboard with ≥15 real APIs._  `[no key]`
 - [ ] **Stage 19 — Ship it.** CHANGELOG + version bump + a marketplace **GitHub Action**
@@ -133,11 +142,13 @@ compact manifest), `lap score before after` diff mode, profile L0 "be-discoverab
 ## Status
 
 **v0.1 + v0.2 complete (stages 0–13); v0.3 in progress.** Done in v0.3: **Stage 16** (grouped
-≥2-per-category benchmark tasks + per-category averages + tests) and **Stage 15(a)** (softened the
-profile's "validated" → "preliminary"). **▶ Stage 17 (fuzz on a real-spec corpus).** Two stages are
-parked on external unblocks, do them whenever ready: **Stage 14** needs the owner GitHub rename
-(`LLMToHTTP` → `lap`); **Stage 15(b)** needs `ANTHROPIC_API_KEY` for the live success-rate matrix.
-Say "continue LAP" to run Stage 17.
+≥2-per-category benchmark tasks + per-category averages + tests), **Stage 15(a)** (softened the
+profile's "validated" → "preliminary"), and **Stage 17** (fuzz over 175+ real APIs.guru specs →
+zero crashes; fixed Swagger 2.0 + non-JSON media-type degenerate output; +`fuzz_corpus.py` and a
+2.0 regression sample). **▶ Stage 18 (efficiency leaderboard — `docs/LEADERBOARD.md`, ≥15 real
+APIs, key-free).** Two stages are parked on external unblocks, do them whenever ready: **Stage 14**
+needs the owner GitHub rename (`LLMToHTTP` → `lap`); **Stage 15(b)** needs `ANTHROPIC_API_KEY` for
+the live success-rate matrix. Say "continue LAP" to run Stage 18.
 
 ## Sources captured for Stage 1 (so it can be done without re-searching)
 

@@ -1,0 +1,65 @@
+{
+  "swagger": "2.0",
+  "info": { "title": "Swagger2 Pets", "version": "1.0.0" },
+  "basePath": "/v1",
+  "consumes": ["application/json"],
+  "produces": ["application/json"],
+  "paths": {
+    "/pets": {
+      "get": {
+        "operationId": "listPets",
+        "summary": "List pets",
+        "parameters": [
+          { "name": "breed", "in": "query", "type": "string" }
+        ],
+        "responses": {
+          "200": {
+            "description": "a list of pets",
+            "schema": { "type": "array", "items": { "$ref": "#/definitions/Pet" } }
+          }
+        }
+      },
+      "post": {
+        "operationId": "createPet",
+        "summary": "Create a pet",
+        "parameters": [
+          { "name": "body", "in": "body", "required": true, "schema": { "$ref": "#/definitions/PetCreate" } }
+        ],
+        "responses": {
+          "201": { "description": "created", "schema": { "$ref": "#/definitions/Pet" } }
+        }
+      }
+    },
+    "/pets/{petId}": {
+      "get": {
+        "operationId": "getPet",
+        "summary": "Get a pet",
+        "parameters": [
+          { "name": "petId", "in": "path", "required": true, "type": "integer" }
+        ],
+        "responses": {
+          "200": { "description": "ok", "schema": { "$ref": "#/definitions/Pet" } },
+          "404": { "description": "not found" }
+        }
+      }
+    }
+  },
+  "definitions": {
+    "Pet": {
+      "type": "object",
+      "properties": {
+        "id": { "type": "integer" },
+        "name": { "type": "string" },
+        "status": { "type": "string", "enum": ["available", "sold"] }
+      }
+    },
+    "PetCreate": {
+      "type": "object",
+      "required": ["name"],
+      "properties": {
+        "name": { "type": "string" },
+        "status": { "type": "string" }
+      }
+    }
+  }
+}

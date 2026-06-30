@@ -25,7 +25,7 @@ def _input_schema(spec: dict, op: ir.Op) -> dict:
     required: list[str] = []
     for param in op.params:
         if param.get("in") == "path":
-            props[param["name"]] = ir.inline_refs(spec, param.get("schema", {}))
+            props[param["name"]] = ir.inline_refs(spec, ir._param_schema(param))
             if param.get("required", True):
                 required.append(param["name"])
     body = ir._json_body_schema(spec, op.raw)
@@ -49,7 +49,7 @@ def _field(name: str, type_str: str, constraint: str = "") -> str:
 
 
 def _type_block(spec: dict, name: str) -> str:
-    fields = ir._schema_fields(spec, {"$ref": f"#/components/schemas/{name}"})
+    fields = ir._schema_fields(spec, {"$ref": ir.schema_ref(spec, name)})
     body = ", ".join(_field(n, t, c) for n, t, c in fields)
     return f"type {name} = {{ {body} }}"
 

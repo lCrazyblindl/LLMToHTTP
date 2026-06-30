@@ -4,7 +4,10 @@ The reusable, app-agnostic parsing the `lap` toolkit builds on. Takes any OpenAP
 spec (file path or http[s] URL; JSON or YAML) and yields a normalized operation
 list. Hardened for the constructs real specs use: `allOf`/`oneOf`/`anyOf`, `$ref`
 in parameters / requestBodies / responses, path-item-level parameters, OpenAPI 3.1
-`type: [..., "null"]`, and external `$ref`s (left intact, never crash).
+`type: [..., "null"]`, and external `$ref`s (left intact, never crash). Also reads
+Swagger/OpenAPI 2.0 shapes (response `schema`, `in: body` params, type keywords on
+the parameter, `#/definitions`) and non-JSON media types (`*+json`, form, XML), so
+2.0 and XML/form APIs yield real returns/bodies instead of looking empty.
 """
 
 from __future__ import annotations
@@ -149,28 +152,66 @@ def _schema_fields(spec: dict, schema) -> list[tuple[str, str, str]]:
     return out
 
 
+def _content_schema(node) -> dict | None:
+    """Pick a schema out of an OpenAPI 3 `content` map. Prefers `application/json`,
+    then any `*+json`/`*json` media type, then the first media type with a schema —
+    so JSON-ish APIs (`application/hal+json`, `application/problem+json`) and even
+    XML-only ones still yield a structural schema instead of looking empty."""
+    content = node.get("content") if isinstance(node, dict) else None
+    if not isinstance(content, dict):
+        return None
+    sch = content.get("application/json", {})
+    if isinstance(sch, dict) and isinstance(sch.get("schema"), dict):
+        return sch["schema"]
+    for mt, mobj in content.items():
+        if isinstance(mt, str) and mt.endswith("json") and isinstance(mobj, dict) \
+                and isinstance(mobj.get("schema"), dict):
+            return mobj["schema"]
+    for mobj in content.values():
+        if isinstance(mobj, dict) and isinstance(mobj.get("schema"), dict):
+            return mobj["schema"]
+    return None
+
+
 def _json_body_schema(spec: dict, operation: dict) -> dict | None:
     rb = operation.get("requestBody")
-    if not isinstance(rb, dict):
-        return None
-    rb = _deref(spec, rb)  # requestBody may itself be a $ref
-    return rb.get("content", {}).get("application/json", {}).get("schema")
+    if isinstance(rb, dict):
+        sch = _content_schema(_deref(spec, rb))  # requestBody may itself be a $ref
+        if isinstance(sch, dict):
+            return sch
+    # Swagger/OpenAPI 2.0: the body is a parameter with `in: body` (+ a schema).
+    for p in operation.get("parameters", []):
+        if isinstance(p, dict) and "$ref" in p:
+            p = _deref(spec, p)
+        if isinstance(p, dict) and p.get("in") == "body" and isinstance(p.get("schema"), dict):
+            return p["schema"]
+    return None
 
 
-def _returns_str(spec: dict, operation: dict) -> str:
+def _response_schema(spec: dict, operation: dict) -> dict | None:
+    """Success-response schema for an operation, across OpenAPI 3 (`content`) and
+    2.0 (`schema` directly on the response)."""
     responses = operation.get("responses", {})
     for code in ("200", "201", "202"):
         resp = _deref(spec, responses.get(code, {}))  # response may be a $ref
-        schema = resp.get("content", {}).get("application/json", {}).get("schema")
-        if not isinstance(schema, dict):
-            continue
-        if schema.get("type") == "array":
-            items = schema.get("items", {})
-            ref = items.get("$ref", "") if isinstance(items, dict) else ""
-            return f"{ref.rsplit('/', 1)[-1] or _type_str(spec, items)}[]"
-        ref = schema.get("$ref", "")
-        return ref.rsplit("/", 1)[-1] if ref else _type_str(spec, schema)
-    return "void"
+        sch = _content_schema(resp)
+        if isinstance(sch, dict):
+            return sch
+        if isinstance(resp.get("schema"), dict):  # Swagger 2.0
+            return resp["schema"]
+    return None
+
+
+def _returns_str(spec: dict, operation: dict) -> str:
+    schema = _response_schema(spec, operation)
+    if not isinstance(schema, dict):
+        return "void"
+    if schema.get("type") == "array":
+        items = schema.get("items", {})
+        ref = items.get("$ref", "") if isinstance(items, dict) else ""
+        return f"{ref.rsplit('/', 1)[-1] or _type_str(spec, items)}[]"
+    ref = schema.get("$ref", "")
+    return ref.rsplit("/", 1)[-1] if ref else _type_str(spec, schema)
 
 
 def _synth_name(method: str, path: str) -> str:
@@ -182,6 +223,18 @@ def _synth_name(method: str, path: str) -> str:
             "PUT": "update", "PATCH": "patch", "DELETE": "delete"}.get(method, method.lower())
     noun = singular if (has_id or method in ("POST", "PUT", "PATCH", "DELETE")) else resource
     return f"{verb}_{noun}"
+
+
+_PARAM_SCHEMA_KEYS = ("type", "format", "enum", "items", "minimum", "maximum",
+                      "minLength", "maxLength", "pattern", "default")
+
+
+def _param_schema(p: dict) -> dict:
+    """The schema of a parameter, across OpenAPI 3 (a nested `schema`) and 2.0
+    (the type keywords live directly on the parameter object)."""
+    if isinstance(p, dict) and isinstance(p.get("schema"), dict):
+        return p["schema"]
+    return {k: p[k] for k in _PARAM_SCHEMA_KEYS if isinstance(p, dict) and k in p}
 
 
 def _resolved_parameters(spec: dict, path_item: dict, operation: dict) -> list[dict]:
@@ -209,7 +262,7 @@ def operations(spec: dict) -> list[Op]:
             if not isinstance(operation, dict):
                 continue
             params = _resolved_parameters(spec, path_item, operation)
-            path_params = [(p["name"], _type_str(spec, p.get("schema", {})))
+            path_params = [(p["name"], _type_str(spec, _param_schema(p)))
                            for p in params if p.get("in") == "path"]
             body_schema = _json_body_schema(spec, operation)
             body_fields = _schema_fields(spec, body_schema) if body_schema else []
@@ -264,7 +317,15 @@ def referenced_component_names(spec: dict) -> list[str]:
 
     for op in operations(spec):
         visit(_json_body_schema(spec, op.raw))
-        for code in ("200", "201", "202"):
-            resp = _deref(spec, op.raw.get("responses", {}).get(code, {}))
-            visit(resp.get("content", {}).get("application/json", {}).get("schema"))
+        visit(_response_schema(spec, op.raw))
     return names
+
+
+def schema_ref(spec: dict, name: str) -> str:
+    """The `$ref` that resolves component schema `name` in this spec — OpenAPI 3
+    (`#/components/schemas/`) or 2.0 (`#/definitions/`)."""
+    if name in (spec.get("components", {}) or {}).get("schemas", {}):
+        return f"#/components/schemas/{name}"
+    if name in (spec.get("definitions", {}) or {}):
+        return f"#/definitions/{name}"
+    return f"#/components/schemas/{name}"
