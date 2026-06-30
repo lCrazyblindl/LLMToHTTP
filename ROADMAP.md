@@ -87,16 +87,50 @@ validation. Each is one bounded session. `[no key]` = doable without an API key.
   the T5 DSL-gap shows live (odata 2995 vs code 1735). Also fixed a latent empty-content bug in
   token-bench `tokens.py` that the faithful run surfaced. `results.md` now holds faithful+live.
 
-### Further backlog (unscheduled)
-Auto-fix patches from lint (emit a compact manifest), `lap score before after` diff mode, a
-profile "L0 be-discoverable" rule (llms.txt / .well-known / NLWeb), CONTRIBUTING + issue templates.
+## Stages — v0.3 (post-validation hardening + reach)
+
+Same stop/resume model. `[key]` = needs `ANTHROPIC_API_KEY` (read the User-scope value into the
+command, or restart Claude Code so all tools inherit it).
+
+- [ ] **▶ Stage 14 — Rename + rebrand to `lap`.** Agent part **done**: README title/tagline +
+  `CLAUDE.md` rebranded to `lap` (LLM-API Profile). **Remaining (owner):** GitHub → Settings →
+  rename `LLMToHTTP` → `lap` + set the description (no `gh`/token available to the agent; GitHub
+  auto-redirects old URLs, nothing breaks). After that: switch the CI-badge + `pyproject`
+  `[project.urls]` to `/lap`, and `git remote set-url origin .../lap.git`. _Done: repo is `lap`,
+  refs updated._  `[no key]`
+- [ ] **Stage 15 — Honest validation.** (a, free) soften the profile's "validated" to
+  "preliminary". (b) Real live matrix in token-bench: models (haiku/sonnet) × task categories ×
+  **repeats** (k≈3 → success *rates*) × **include `numbered`**; report rates, not one OK/FAIL;
+  update the profile with the real evidence. _Done: a success-rate table over repeats incl.
+  numbered._  `[key for the matrix]`
+- [ ] **Stage 16 — Grouped, ≥2-per-category benchmark tasks.** Restructure
+  `experiments/token-bench/tasks.py` into categories — **write / aggregate-read / peek-read /
+  multi-step / beyond-DSL** — with **≥2 tasks each** (add a 2nd per category); make `run_bench`
+  group + average per category so no conclusion rests on a single task. Add tests. _Done: ≥2
+  tasks/category + per-category averages in results.md._  `[no key]`
+- [ ] **Stage 17 — Fuzz on a real-spec corpus.** Run `lap score`/`lap lint` over many real specs
+  (e.g. APIs.guru) and assert no crashes + sane output; fix the parser long-tail
+  (`discriminator`, webhooks, deep nesting). _Done: a corpus run is clean; bugs fixed + a
+  regression sample._  `[no key]`
+- [ ] **Stage 18 — Efficiency leaderboard.** Score N real public APIs (Stripe/GitHub/Slack/
+  Notion/…) — bucket A is free — and publish `docs/LEADERBOARD.md`: a ranked table of agent-API
+  token-efficiency (a neutral public dataset). _Done: leaderboard with ≥15 real APIs._  `[no key]`
+- [ ] **Stage 19 — Ship it.** CHANGELOG + version bump + a marketplace **GitHub Action**
+  (`lap-action`) + packaging polish; the owner publishes to PyPI + cuts a GitHub release.
+  _Done: release artifacts ready; (owner) published._  `[owner action]`
+
+### Further backlog (unscheduled, key-free)
+estimate-C realism (use schema `examples`; configurable string length), caching economics
+(first-call vs amortized A), bucket-B estimate, NLWeb endpoint scoring, lint auto-fix (emit a
+compact manifest), `lap score before after` diff mode, profile L0 "be-discoverable" rule
+(llms.txt / .well-known / NLWeb), CONTRIBUTING + issue templates.
 
 ## Status
 
-**✅ ALL STAGES COMPLETE — v0.1 (0–6) and v0.2 (7–13).** The findings are now validated on
-Claude's real tokenizer and on a live run (savings hold, accuracy holds). Remaining items are
-**optional**: the owner-only PyPI + GitHub release, and the unscheduled "further backlog" below
-(auto-fix, diff mode, L0 discoverability rule, CONTRIBUTING) — all key-free if you want more.
+**v0.1 + v0.2 complete & validated (stages 0–13).** Now on **v0.3** — **▶ Stage 14 (rename +
+rebrand to `lap`)**. The GitHub rename itself is an owner step (no `gh`/token available to the
+agent); everything else proceeds via the usual stop/resume. Say "continue LAP" to run the next
+stage.
 
 ## Sources captured for Stage 1 (so it can be done without re-searching)
 

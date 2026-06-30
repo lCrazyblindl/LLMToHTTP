@@ -1,8 +1,8 @@
-# LLMToHTTP
+# lap — LLM-API Profile
 
-Research sandbox for making LLM↔HTTP interaction token-efficient, and turning the
-findings into **LAP** — an open, neutral token-efficiency measurement + guidance layer
-for agent-facing APIs.
+Open, neutral toolkit to **measure and improve the token-efficiency of agent-facing APIs**
+(OpenAPI & MCP): a scorer (`lap score`), a linter (`lap lint`), the LAP profile, and a
+benchmark. (GitHub repo: `lap`; local folder is still `LLMToHTTP`.)
 
 ## Layout
 - `pet-zoo/` — small FastAPI CRUD service used as the testbed.

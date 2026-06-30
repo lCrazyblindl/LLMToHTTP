@@ -1,10 +1,10 @@
-# LLMToHTTP
+# lap — LLM-API Profile
 
 [![ci](https://github.com/lCrazyblindl/LLMToHTTP/actions/workflows/ci.yml/badge.svg)](https://github.com/lCrazyblindl/LLMToHTTP/actions/workflows/ci.yml) · MIT licensed ([LICENSE](LICENSE))
 
-LLM TO HTTP Improvement
+**Measure and improve the token-efficiency of agent-facing APIs** (OpenAPI & MCP): a scorer (`lap score`), a linter (`lap lint`), a profile, and a benchmark.
 
-Sandbox repo for experimenting with exposing tools over HTTP, including MCP.
+Started as a sandbox for token-efficient LLM↔HTTP interaction; now the home of **LAP** — an open, neutral token-efficiency measurement + guidance layer for agent-facing APIs.
 
 ## Projects
 
