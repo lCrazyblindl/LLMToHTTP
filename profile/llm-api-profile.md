@@ -59,7 +59,7 @@ A provider adopts the highest level worth its task distribution.
 
 ### Discovery — bucket A
 - **D1** Describe operations as compact, familiar signatures (TS-like) or trimmed OpenAPI, not full JSON-Schema dumps. *Evidence: 401 vs 1637 tokens (compact_sig vs openapi_full); a real FastMCP server is 1689, or 3762 with output schemas.*
-- **D2** When endpoints are many, expose them lazily / searchably (a search-then-fetch step) instead of dumping all definitions up front. *Evidence: industry Tool Search ≈ −85%.*
+- **D2** When endpoints are many, expose them lazily / searchably (a search-then-fetch step) instead of dumping all definitions up front. *Evidence: industry Tool Search ≈ −85% (vendor-reported); we independently verified this live on a real 290-operation API — Anthropic's real Tool Search cut billed tokens ~90% versus the identical schemas without it, server-enforced regardless of model behavior (`docs/TOOL-SEARCH.md`). Caveat: not worth it below ~10 tools, where the search round-trip itself costs more than it saves.*
 - **D3** Do **not** encode operations as opaque codes/numbers. *Evidence: `numbered` total ≥ `compact_sig` total — a net loss, because the codebook still costs bucket A while saving only ~2 tokens of bucket B.*
 
 ### Reads — bucket C
@@ -79,6 +79,7 @@ A provider adopts the highest level worth its task distribution.
 
 ### Escape hatch — bucket C, arbitrary compute
 - **X1** For computations the query layer can't express, offer a **sandboxed code-execution** endpoint that returns only the final value. *Evidence: T5 (argmax over a computed property) — result 13 (code) vs 561 (query projection) vs 1161 (full list).*
+  > **A real-world caveat, not just theory:** unlike R1/R3/A1 (enforced by the endpoint's own shape — the model can't opt back into a bigger response), X1's saving is **behavioral, not structural**. We tested Anthropic's own real code-execution tool live (`docs/CODE-EXEC.md`): on one run it cost *more* tokens than both the naive baseline and our own hand-rolled sandbox, because the model chose to view the raw uploaded data before writing the code that would have avoided reprinting it. Offering the escape hatch is necessary but not sufficient — nothing stops a calling agent from re-materializing the very payload the hatch exists to avoid. (Contrast with D2's Tool Search, `docs/TOOL-SEARCH.md`, which *is* server-enforced and held up at ~90% real savings regardless of model behavior.)
 
 > The query layer (L2–L3) and the escape hatch (L4) are two points on one spectrum.
 > Extending the query DSL covers more tasks but grows its menu (bucket A) toward a

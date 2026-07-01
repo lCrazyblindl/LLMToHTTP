@@ -51,6 +51,15 @@ is attacking both, hard.
   lazy tool loading), Cloudflare **Code Mode** (~99.9% on a 2,500-endpoint API), MCP
   **SEP-1576** (token-bloat mitigation: schema dedup, embedding tool-select, progressive
   disclosure).
+- **We didn't just cite these — we tested Anthropic's own two live** (v0.4 R5/R6, real API calls,
+  not synthetic): **Tool Search held up** (a real ~90% saving on a real 290-operation API,
+  `docs/TOOL-SEARCH.md`) — the vendor number roughly confirmed, and *server-enforced* regardless of
+  the calling model's behavior. **Code-execution did not, on one run** (`docs/CODE-EXEC.md`): it
+  cost *more* tokens than both the naive baseline and our own hand-rolled sandbox, because the
+  model viewed the raw data before writing code to avoid reprinting it. Headline vendor numbers are
+  usually best-case; whether they hold depends on whether the saving is structural (the server
+  enforces it) or behavioral (it only holds if the calling agent cooperates) — see the profile's
+  D2 vs X1 for the general rule this suggests.
 
 ### 6. Token-efficiency tooling — the closest neighbors to LAP
 

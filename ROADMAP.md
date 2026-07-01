@@ -234,13 +234,19 @@ candidates: [`docs/REAL-TOOLS.md`](docs/REAL-TOOLS.md).
   changed, several substantially (Kubernetes 1303→**7613**, Stripe 1588→**15868**, DigitalOcean
   616→**12244**, Notion 412→**6118**) — the previous numbers were undercounting real, enveloped
   responses. +4 tests (29 passing).  `[no key]`
-- [ ] **▶ R8 — Reframe the story honestly.** README/profile/LANDSCAPE: our variants = principle in
-  control; real-tool track = holds in practice (mostly — R6 found a real counter-example); keep
-  "ours vs real" explicit and note where the real tools *didn't* clearly win (R6). _Done: docs
-  updated._  `[no key]`
+- [x] **R8 — Reframe the story honestly.** Done. `profile/llm-api-profile.md`: rule **D2** (Tool
+  Search) now cites our own real ~90% verification alongside the vendor number, and explicitly
+  notes it's *server-enforced*; rule **X1** (code-execution escape hatch) now carries an explicit
+  caveat that its saving is **behavioral, not structural** — cites the real R6 counter-example
+  (cost more than naive on one run) and contrasts it with D2's server-enforced guarantee.
+  `docs/LANDSCAPE.md` §5 (Efficiency patterns): added that we tested two of Anthropic's own
+  features live rather than only citing headline numbers — Tool Search held up, code-execution
+  didn't on one run — with the general lesson (structural vs behavioral savings). README's v0.4
+  bullet already stated the R6 counter-example plainly (done in the R6 commit); left as-is.
+  _Done: docs updated, "ours vs real" kept explicit, the R6 counter-example is not buried._  `[no key]`
 
-Recommended order: **R1 → R2 → R4 → R3 → R7 → R5 → R6 → R8**. R1–R7 all done; only R8 (a
-docs-only pass, no key needed) remains to close out v0.4's numbered stages.
+Recommended order: **R1 → R2 → R4 → R3 → R7 → R5 → R6 → R8**. **All of v0.4's numbered stages
+(R1–R8) are now done.**
 
 ### Further backlog (unscheduled, key-free)
 **Shipped after the v0.3 stages:** the LAP rules as a **Spectral ruleset**
@@ -255,40 +261,37 @@ compact manifest), `lap score before after` diff mode, profile L0 "be-discoverab
 
 ## Status
 
-**v0.3 complete (stages 0–19); v0.4 in progress — "measure real tools, not our own."** Only the
-owner's v0.3 publish remains (`python -m build` → `twine upload` + `gh release`, see
-[`RELEASING.md`](RELEASING.md)). v0.4 pivots the benchmark to real third-party artifacts. Done:
-**R1** ([`docs/REAL-TOOLS.md`](docs/REAL-TOOLS.md) inventory) and **R2** — a **real generator
-shoot-out** ([`docs/GENERATORS.md`](docs/GENERATORS.md)): three real OpenAPI→MCP generators on the
-live Petstore all emit menus **heavier than the naive baseline and 5–28× heavier than compact** —
-the ecosystem leaves the savings unclaimed, confirmed on real tools. **R4** — end-to-end on the
-**live hosted Swagger Petstore** (real HTTP, real model, real FastMCP menu, k=3) →
-[`validation-real.md`](experiments/token-bench/validation-real.md): **compression didn't cost
-accuracy — it helped** (naive `openapi_full` failed the count task 0/3; `compact_sig` and real
-FastMCP 3/3, compact at ~half the tokens); the pet-zoo toy gap is closed. **R3** — scored three
-real published **MCP servers** over stdio ([`docs/MCP-SERVERS.md`](docs/MCP-SERVERS.md)):
-git/fetch/time advertise 283–1418-token menus that a compact rendering cuts **~89%**. So across
-**R2–R4** the pattern holds on real generators, a real live API, and real servers alike. **R7** —
-taught `estimate` the `{data:[…]}` / k8s `items` / OData `{value:[…]}` envelope pattern, so
-bucket-C is honest on real APIs; **15 of 20** leaderboard rows changed (Kubernetes 1303→7613,
-Stripe 1588→15868, DigitalOcean 616→12244) — the old numbers undercounted enveloped lists. **R5** —
-real Tool Search (GA, no beta) on real APIs → [`docs/TOOL-SEARCH.md`](docs/TOOL-SEARCH.md) +
-[`validation-real.md`](experiments/token-bench/validation-real.md): **~90% real, billed savings at
-scale** (live DigitalOcean, 290 ops: 4789 vs 50617 tokens, same schemas, only `defer_loading`
-differs) but **costs more than compact at small scale** (live Petstore, 19 ops) — Anthropic's own
-"10+ tools" guidance, confirmed empirically both ways; also found `count_tokens` rejects server
-tools outright, and that Kubernetes (4.2M naive tokens) is too large for any model's context window
-even with `defer_loading` (every tool's full definition still ships in the request). **R6** — real
-code-execution (GA, no beta for the tool itself) vs our sandbox `code_exec`
-([`docs/CODE-EXEC.md`](docs/CODE-EXEC.md)): a genuinely humbling result — real code-execution
-totaled **15613 tokens**, *heavier* than both naive (6121) and ours (1636), because the model
-**viewed the uploaded file first** (re-entering the raw data into context) before writing the
-counting code. Real finding: Tool Search's saving is *structural* (server-enforced, R5), but
-code-execution's is only *behavioral* (holds only if the model's own code never prints the raw
-data) — our sandbox enforces that structurally, real code-execution doesn't. **All of R1–R7 are
-now done. ▶ R8 — reframe the story honestly** (`[no key]`): update README/profile/LANDSCAPE so
-"real tools mostly leave savings on the table" also notes R6's counter-example. Say "continue LAP"
-to run R8 (the last v0.4-numbered stage). A key-free **backlog** remains below regardless.
+**v0.3 complete (stages 0–19); v0.4 COMPLETE (R1–R8) — "measure real tools, not our own."** Only
+the owner's v0.3 publish remains as outside action (`python -m build` → `twine upload` →
+`gh release`, see [`RELEASING.md`](RELEASING.md)); every agent-side stage of both v0.3 and v0.4 is
+done. v0.4 pivoted the benchmark from our own interface variants to real third-party artifacts —
+real generators, a real live API, real servers, real Anthropic features — and found the compact/
+efficient story holds **most, not all**, of the time:
+
+- **Real generators & servers leave savings unclaimed.** Three real OpenAPI→MCP generators
+  ([`docs/GENERATORS.md`](docs/GENERATORS.md)) and three real published MCP servers
+  ([`docs/MCP-SERVERS.md`](docs/MCP-SERVERS.md)) all emit menus heavier than naive and far heavier
+  than compact (5–28× and ~89% respectively) — nobody in the ecosystem ships the compact form.
+- **Compression didn't cost accuracy on a real live API — it helped.** End-to-end on the hosted
+  Swagger Petstore ([`validation-real.md`](experiments/token-bench/validation-real.md)): the naive
+  menu was both the heaviest *and* the least reliable (failed a count task 0/3 while compact/real
+  FastMCP hit 3/3).
+- **Envelope-aware bucket C** made result-size estimates honest on real APIs — 15 of 20 leaderboard
+  rows changed, several substantially (Kubernetes 1303→7613, Stripe 1588→15868).
+- **Two of Anthropic's own real efficiency features, tested live, cut two different ways.** Real
+  **Tool Search** ([`docs/TOOL-SEARCH.md`](docs/TOOL-SEARCH.md)) held up: ~90% real, billed saving
+  at scale (290 real ops), *server-enforced* regardless of model behavior — though it cost more
+  than compact at small scale (19 ops), matching Anthropic's own "10+ tools" guidance. Real
+  **code-execution** ([`docs/CODE-EXEC.md`](docs/CODE-EXEC.md)) did **not** hold up on one run: it
+  cost *more* than both naive and our own sandbox, because the model viewed the raw uploaded data
+  before writing code to avoid reprinting it — its saving is *behavioral*, not structural, and
+  nothing stops a model from re-materializing the very payload the hatch exists to avoid.
+- **R8 reframed the story honestly** — the profile's D2 (Tool Search) and X1 (code-execution) rules
+  and `docs/LANDSCAPE.md` §5 now say plainly which savings are server-enforced vs behavior-dependent,
+  instead of only citing vendor headline numbers.
+
+A key-free **backlog** remains below (unscheduled, pick anytime); a broader Stage 15(b) matrix
+(more models/tasks/repeats) is also open, key-needed. Say "continue LAP" to pick one.
 
 ## Sources captured for Stage 1 (so it can be done without re-searching)
 
