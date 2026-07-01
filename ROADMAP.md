@@ -193,9 +193,23 @@ candidates: [`docs/REAL-TOOLS.md`](docs/REAL-TOOLS.md).
   cost accuracy — it helped:** naive `openapi_full` *failed* the count task **0/3** (heaviest +
   least reliable), while `compact_sig` and **real FastMCP** were **3/3**, and compact used ~half the
   tokens of naive. Closes the pet-zoo toy gap. Caveats: 1 cheap model, k=3 (noisy), 2 tasks, 1 API.  `[key]`
-- [ ] **▶ R5 — Real Tool Search head-to-head.** Anthropic's **real** Tool Search on a big real
-  toolset vs naive; real tokens + accuracy vs our `tool_search`. _Done: real-vs-ours row._  `[key + beta]`
-- [ ] **R6 — Real code-execution head-to-head.** Anthropic's **real** code-execution (and/or
+- [x] **R5 — Real Tool Search head-to-head.** Done, no beta header needed (GA feature) —
+  [`experiments/tool_search_real.py`](experiments/tool_search_real.py) →
+  [`docs/TOOL-SEARCH.md`](docs/TOOL-SEARCH.md), plus a 4th form added to the Petstore live matrix
+  ([`experiments/real_api_matrix.py`](experiments/real_api_matrix.py) →
+  [`validation-real.md`](experiments/token-bench/validation-real.md)). **At real scale (live
+  DigitalOcean, 290 real ops): real Tool Search billed 4789 input tokens vs 50617 for the identical
+  schemas without `defer_loading` — a real, live, ~90% cut**, isolating just the mechanism (same
+  question, same model, same tool schemas). **At small scale (live Petstore, 19 ops): real Tool
+  Search cost *more* than `compact_sig`/real FastMCP** (11728 vs 5418/7206 on one task) — matches
+  Anthropic's own "10+ tools" guidance, now empirically confirmed both ways on real APIs. Real find:
+  the free `count_tokens` endpoint **rejects any request containing a server tool** (400) — real
+  Tool Search's bucket A can only be measured via a live, billed call, unlike every other row in
+  this repo. Also real: Kubernetes (821 ops) was tried first and rejected — its naive $ref-inlined
+  schema is ~4.2M faithful tokens, and since *every* tool's full definition (deferred or not) must
+  still be sent in the request, even `defer_loading` can't get an oversized corpus under a model's
+  context window (Haiku 4.5: 200K) — a real, useful limit, not just a documented one.  `[key]`
+- [ ] **▶ R6 — Real code-execution head-to-head.** Anthropic's **real** code-execution (and/or
   `mcp-compressor`) vs our sandbox `code_exec` on real tasks. _Done: real-vs-ours row._  `[key + beta]`
 - [x] **R7 — Envelope-aware bucket C.** Done: `lap/estimate.py` detects a list wrapped in an
   envelope object (`_find_envelope_key` — Stripe/JSON:API `{"data":[...]}`, k8s `{"items":[...]}`,
@@ -239,10 +253,17 @@ git/fetch/time advertise 283–1418-token menus that a compact rendering cuts **
 **R2–R4** the pattern holds on real generators, a real live API, and real servers alike. **R7** —
 taught `estimate` the `{data:[…]}` / k8s `items` / OData `{value:[…]}` envelope pattern, so
 bucket-C is honest on real APIs; **15 of 20** leaderboard rows changed (Kubernetes 1303→7613,
-Stripe 1588→15868, DigitalOcean 616→12244) — the old numbers undercounted enveloped lists. **▶ R5
-— real Tool Search head-to-head** (`[key + beta]`): Anthropic's real Tool Search on a big real
-toolset vs naive, real tokens + accuracy, vs our `tool_search` approximation. Say "continue LAP"
-to run R5. (Order: R5 → R6 → R8.) A key-free **backlog** remains below.
+Stripe 1588→15868, DigitalOcean 616→12244) — the old numbers undercounted enveloped lists. **R5** —
+real Tool Search (GA, no beta) on real APIs → [`docs/TOOL-SEARCH.md`](docs/TOOL-SEARCH.md) +
+[`validation-real.md`](experiments/token-bench/validation-real.md): **~90% real, billed savings at
+scale** (live DigitalOcean, 290 ops: 4789 vs 50617 tokens, same schemas, only `defer_loading`
+differs) but **costs more than compact at small scale** (live Petstore, 19 ops) — Anthropic's own
+"10+ tools" guidance, confirmed empirically both ways; also found `count_tokens` rejects server
+tools outright, and that Kubernetes (4.2M naive tokens) is too large for any model's context window
+even with `defer_loading` (every tool's full definition still ships in the request). **▶ R6 — real
+code-execution head-to-head** (`[key + beta]`): Anthropic's real code-execution tool vs our sandbox
+`code_exec` on real tasks. Say "continue LAP" to run R6. (Order: R6 → R8.) A key-free **backlog**
+remains below.
 
 ## Sources captured for Stage 1 (so it can be done without re-searching)
 

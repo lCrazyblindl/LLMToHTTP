@@ -8,9 +8,11 @@ https://petstore3.swagger.io; we record success (vs a ground truth computed live
 tokens.
 
 Menu forms compared:
-  - openapi_full  : our naive $ref-inlined tools (lap.menu.full)
-  - compact_sig   : our compact manifest + bare tools (the LAP form)
-  - fastmcp       : the REAL FastMCP.from_openapi tool schemas (a real generator)
+  - openapi_full     : our naive $ref-inlined tools (lap.menu.full)
+  - compact_sig      : our compact manifest + bare tools (the LAP form)
+  - fastmcp          : the REAL FastMCP.from_openapi tool schemas (a real generator)
+  - tool_search (real): Anthropic's REAL Tool Search (defer_loading on every op;
+    see experiments/tool_search_real.py for the large-scale version, R5)
 
 Needs ANTHROPIC_API_KEY (spends model tokens; Haiku by default). Bounded tasks + a result
 cap keep spend small. Writes experiments/token-bench/validation-real.md.
@@ -35,6 +37,9 @@ SPEC_URL = "https://petstore3.swagger.io/api/v3/openapi.json"
 BASE = "https://petstore3.swagger.io/api/v3"
 MODEL = os.environ.get("BENCH_MODEL", "claude-haiku-4-5-20251001")
 MAX_TURNS, MAX_TOKENS, RESULT_CAP = 6, 1024, 8000
+# Real Tool Search (GA, no beta header) - see experiments/tool_search_real.py for the
+# large-scale (Kubernetes) version; here it's exercised end-to-end with real execution.
+_SEARCH_TOOL = {"type": "tool_search_tool_regex_20251119", "name": "tool_search_tool_regex"}
 
 spec = ir.load_spec(SPEC_URL)
 OPS = ir.operations(spec)
@@ -78,6 +83,14 @@ def _menus():
     if mcp_form.available():
         inp, _ = mcp_form.build(spec)
         forms["fastmcp (real)"] = (inp, "Use the provided tools to answer.", tokens.count_tools(inp))
+    # Real Tool Search: every op's full schema, deferred; the API discovers + expands
+    # server-side within one response, so _run_one's existing tool_use filter already
+    # handles the extra server_tool_use / tool_search_tool_result blocks correctly.
+    # count_tokens rejects any request containing a server tool (confirmed live via
+    # experiments/tool_search_real.py) - there's no free/static bucket-A for this form,
+    # only the real per-task totals below (which ARE real, billed usage).
+    ts_tools = [_SEARCH_TOOL] + [{**t, "defer_loading": True} for t in full_tools]
+    forms["tool_search (real)"] = (ts_tools, "Use the provided tools to answer.", "n/a (server tool)")
     return forms
 
 
@@ -147,7 +160,8 @@ def main(repeats: int = 3) -> None:
            f"pet id={pet0 and pet0.get('id')} status={pet0 and pet0.get('status')}",
            "",
            "Same accuracy check as token-bench, but on a **real third-party API** with a **real "
-           "generator (FastMCP)** in the mix - not the pet-zoo toy.", "",
+           "generator (FastMCP)** and Anthropic's **real Tool Search** in the mix - not the "
+           "pet-zoo toy.", "",
            "## Success rate (correct / repeats)", "",
            "| menu form | menu A (tok) | " + " | ".join(tnames) + " |",
            "| --- | ---: | " + " | ".join("---" for _ in tnames) + " |"]
