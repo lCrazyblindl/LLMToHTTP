@@ -1,0 +1,15 @@
+{
+  "name": "lap-spectral",
+  "version": "0.3.0",
+  "private": true,
+  "type": "module",
+  "description": "LAP token-efficiency rules for Spectral (OpenAPI linting).",
+  "license": "MIT",
+  "scripts": {
+    "lint:example": "spectral lint ../lap/examples/bookstore.openapi.json --ruleset lap.spectral.yaml",
+    "lint": "spectral lint --ruleset lap.spectral.yaml"
+  },
+  "devDependencies": {
+    "@stoplight/spectral-cli": "^6.11.0"
+  }
+}

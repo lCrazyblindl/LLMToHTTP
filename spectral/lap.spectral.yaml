@@ -1,0 +1,80 @@
+# LAP token-efficiency rules for Spectral
+#
+# Brings lap lint's checks (D3 / R1 / R2 / R3 / W1 / E1 / A1) to anyone already
+# linting OpenAPI with Spectral (https://github.com/stoplightio/spectral). Each
+# rule mirrors lap/lint.py and cites the LAP profile (profile/llm-api-profile.md).
+#
+# Usage (custom functions only load from a LOCAL ruleset, not over http):
+#   spectral lint your-openapi.yaml --ruleset spectral/lap.spectral.yaml
+# or extend it from your own .spectral.yaml alongside spectral:oas — see README.md.
+
+functions:
+  - lapReadableOperationId
+  - lapCollectionParam
+  - lapMinimalWrite
+  - lapErrorResponse
+  - lapAggregateEndpoint
+functionsDir: ./functions
+
+rules:
+  lap-d3-readable-operation-id:
+    description: "operationId should be a readable name, not opaque/numeric (LAP D3)."
+    message: "{{error}}"
+    severity: warn
+    given: "$.paths[*]"
+    then:
+      function: lapReadableOperationId
+
+  lap-r3-collection-pagination:
+    description: "A collection (array-returning) GET should support pagination (LAP R3)."
+    message: "{{error}}"
+    severity: warn
+    given: "$.paths[*]"
+    then:
+      function: lapCollectionParam
+      functionOptions:
+        rule: R3
+
+  lap-r1-collection-projection:
+    description: "A collection GET should support field projection (LAP R1)."
+    message: "{{error}}"
+    severity: info
+    given: "$.paths[*]"
+    then:
+      function: lapCollectionParam
+      functionOptions:
+        rule: R1
+
+  lap-r2-collection-filter:
+    description: "A collection GET should support server-side filtering (LAP R2)."
+    message: "{{error}}"
+    severity: info
+    given: "$.paths[*]"
+    then:
+      function: lapCollectionParam
+      functionOptions:
+        rule: R2
+
+  lap-w1-minimal-write:
+    description: "Writes should default to a minimal response, not a full body (LAP W1)."
+    message: "{{error}}"
+    severity: info
+    given: "$.paths[*]"
+    then:
+      function: lapMinimalWrite
+
+  lap-e1-error-response:
+    description: "Every operation should declare a 4xx/5xx error response (LAP E1)."
+    message: "{{error}}"
+    severity: warn
+    given: "$.paths[*]"
+    then:
+      function: lapErrorResponse
+
+  lap-a1-aggregate-endpoint:
+    description: "The API should offer an aggregate/count endpoint (LAP A1)."
+    message: "{{error}}"
+    severity: info
+    given: "$"
+    then:
+      function: lapAggregateEndpoint

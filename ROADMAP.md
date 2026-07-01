@@ -157,8 +157,9 @@ command, or restart Claude Code so all tools inherit it).
   Marketplace"). See `RELEASING.md`.  `[owner action]`
 
 ### Further backlog (unscheduled, key-free)
-**LAP rules as a Spectral / vacuum ruleset** (ride the de-facto OpenAPI linter for distribution
-instead of only a standalone `lap lint`), a short **Related work / credit** note in the README,
+**Shipped after the v0.3 stages:** the LAP rules as a **Spectral ruleset**
+([`spectral/`](spectral/README.md), executed + asserted in CI). Still open: a short
+**Related work / credit** note in the README,
 estimate-C realism (use schema `examples`; configurable string length), caching economics
 (first-call vs amortized A), bucket-B estimate, NLWeb endpoint scoring, lint auto-fix (emit a
 compact manifest), `lap score before after` diff mode, profile L0 "be-discoverable" rule

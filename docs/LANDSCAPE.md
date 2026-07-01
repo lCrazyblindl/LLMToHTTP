@@ -70,8 +70,8 @@ exists (LAP builds on, credits, and overlaps some of these — it is **not first
 - **OpenAPI minifiers for LLMs** — e.g. `LLM-OpenAPI-minifier`: shrink a spec's *characters*
   for prompt-stuffing. (LAP optimizes *tokens*, and keeps readable names as signal.)
 - **General API linters** — Spectral / vacuum: the de-facto OpenAPI linters with CI + custom
-  rulesets, but **no token-efficiency ruleset** ships today — an opportunity: LAP's rules could
-  be distributed as one.
+  rulesets, but **no token-efficiency ruleset** ships with them — so LAP also publishes its rules
+  as a Spectral ruleset ([`../spectral/`](../spectral/README.md)) to ride that distribution.
 - **Token/agent leaderboards** — Tokscale, llm-stats, Artificial Analysis rank **models and
   coding agents** by token use, not the token cost of specific **APIs'** agent menus.
 

@@ -23,6 +23,9 @@ profile**, and a reproducible **token benchmark**.
 - **`docs/LEADERBOARD.md`** — agent-menu token cost of 20 real public APIs.
 - **`experiments/fuzz_corpus.py`** — parser fuzz harness over real APIs.guru specs.
 - A composite **GitHub Action** (`action.yml`) to run `lap score` / `lap lint` in CI.
+- A **Spectral ruleset** ([`spectral/`](spectral/README.md)) porting the lint rules
+  (D3/R1/R2/R3/W1/E1/A1) for teams already linting OpenAPI with Spectral/vacuum; executed and
+  asserted in CI on the bundled example.
 
 ### Fixed
 - Parser now reads **Swagger/OpenAPI 2.0** (response `schema`, `in: body` params,

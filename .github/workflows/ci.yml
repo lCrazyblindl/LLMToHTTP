@@ -18,3 +18,29 @@ jobs:
         run: pytest -q
       - name: Smoke - lint the example spec
         run: python -m lap.lint lap/examples/bookstore.openapi.json
+
+  spectral:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - name: Install Spectral
+        working-directory: spectral
+        run: npm install
+      - name: Run the LAP ruleset on the example (must fire the expected rules)
+        working-directory: spectral
+        run: |
+          set -e
+          npx spectral lint ../lap/examples/bookstore.openapi.json \
+            --ruleset lap.spectral.yaml -f json > out.json || true
+          echo "--- rule codes fired ---"
+          jq -r '.[].code' out.json | sort | uniq -c
+          for code in lap-e1-error-response lap-r3-collection-pagination \
+                      lap-r1-collection-projection lap-r2-collection-filter \
+                      lap-w1-minimal-write lap-a1-aggregate-endpoint; do
+            jq -e --arg c "$code" 'any(.[]; .code == $c)' out.json > /dev/null \
+              || { echo "expected rule $code did not fire"; exit 1; }
+          done
+          echo "LAP Spectral ruleset OK"

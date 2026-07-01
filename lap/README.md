@@ -93,6 +93,9 @@ GitHub Actions:
     fail-on: warn              # fail on any lint warning (omit = report only)
 ```
 
+Already lint OpenAPI with **Spectral**? The same LAP rules ship as a ruleset —
+see [`../spectral/`](../spectral/README.md).
+
 ## What it measures (and what it doesn't)
 
 It measures **bucket A** (the definitions/menu the model carries in context) and **estimates
