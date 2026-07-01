@@ -179,9 +179,13 @@ candidates: [`docs/REAL-TOOLS.md`](docs/REAL-TOOLS.md).
   across 3 real tools). Honest caveat: the generators have conflicting pinned deps, so they were
   measured across two venvs (they broke pet-zoo once; env restored, 25 tests green); `generators.py`
   skips absent generators with a note.  `[no key]`
-- [ ] **▶ R3 — Score the live MCP ecosystem.** Run real published servers (`uvx mcp-server-git`/
-  `-fetch`/`-time`; Docker `github`/`filesystem`) and `lap score --mcp-url` each; add a real-servers
-  section to the leaderboard. _Done: real servers scored._  `[no key / Docker]`
+- [x] **R3 — Score the live MCP ecosystem.** Done: [`experiments/mcp_servers.py`](experiments/mcp_servers.py)
+  connects over **stdio** to three real published reference servers and scores their advertised menus
+  → [`docs/MCP-SERVERS.md`](docs/MCP-SERVERS.md): mcp-server-git 12 tools **1418**→153 (−89%),
+  mcp-server-fetch **290**→28 (−90%), mcp-server-time **283**→31 (−89%). Even reference servers pay a
+  fixed menu tax a compact rendering cuts ~89%; cites the official GitHub MCP (~94 tools/~17.6k) as
+  the heavy real example (Docker daemon was down, so Docker-only servers weren't run). Servers ran
+  from an isolated venv (`MCP_SERVER_PY`).  `[no key / Docker]`
 - [x] **R4 — End-to-end on a real live API.** Done: [`experiments/real_api_matrix.py`]
   (experiments/real_api_matrix.py) runs the live matrix on the **hosted Swagger Petstore** — real
   HTTP execution, Claude Haiku, k=3 — comparing our naive/compact menus and the **real FastMCP**
@@ -193,7 +197,7 @@ candidates: [`docs/REAL-TOOLS.md`](docs/REAL-TOOLS.md).
   toolset vs naive; real tokens + accuracy vs our `tool_search`. _Done: real-vs-ours row._  `[key + beta]`
 - [ ] **R6 — Real code-execution head-to-head.** Anthropic's **real** code-execution (and/or
   `mcp-compressor`) vs our sandbox `code_exec` on real tasks. _Done: real-vs-ours row._  `[key + beta]`
-- [ ] **R7 — Envelope-aware bucket C.** Teach `estimate` the envelope-list pattern (`{data:[…]}`,
+- [ ] **▶ R7 — Envelope-aware bucket C.** Teach `estimate` the envelope-list pattern (`{data:[…]}`,
   k8s `items`) so bucket-C is honest on real APIs. _Done: fix + test._  `[no key]`
 - [ ] **R8 — Reframe the story honestly.** README/profile/LANDSCAPE: our variants = principle in
   control; real-tool track = holds in practice; keep "ours vs real" explicit. _Done: docs updated._  `[no key]`
@@ -223,11 +227,13 @@ the ecosystem leaves the savings unclaimed, confirmed on real tools. **R4** — 
 **live hosted Swagger Petstore** (real HTTP, real model, real FastMCP menu, k=3) →
 [`validation-real.md`](experiments/token-bench/validation-real.md): **compression didn't cost
 accuracy — it helped** (naive `openapi_full` failed the count task 0/3; `compact_sig` and real
-FastMCP 3/3, compact at ~half the tokens); the pet-zoo toy gap is closed. **▶ R3 — score the live
-MCP ecosystem** (`[no key / Docker]`): `lap score --mcp-url` several real published MCP servers
-(`uvx mcp-server-git`/`-fetch`/`-time`; Docker `github`/`filesystem`) → a real-servers section in
-the leaderboard. Say "continue LAP" to run R3. (Order: R3 → R7 → R5 → R6 → R8.) A key-free
-**backlog** remains below.
+FastMCP 3/3, compact at ~half the tokens); the pet-zoo toy gap is closed. **R3** — scored three
+real published **MCP servers** over stdio ([`docs/MCP-SERVERS.md`](docs/MCP-SERVERS.md)):
+git/fetch/time advertise 283–1418-token menus that a compact rendering cuts **~89%**. So across
+**R2–R4** the pattern holds on real generators, a real live API, and real servers alike. **▶ R7 —
+envelope-aware bucket C** (`[no key]`): teach `estimate` the `{data:[…]}` / k8s `items` envelope
+pattern so bucket-C is honest on real APIs (the leaderboard undercounts these). Say "continue LAP"
+to run R7. (Order: R7 → R5 → R6 → R8; R5/R6 are `[key + beta]`.) A key-free **backlog** remains below.
 
 ## Sources captured for Stage 1 (so it can be done without re-searching)
 
