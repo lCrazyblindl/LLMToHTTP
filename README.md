@@ -4,6 +4,20 @@
 
 **Measure and improve the token-efficiency of agent-facing APIs** (OpenAPI & MCP): a scorer (`lap score`), a linter (`lap lint`), a profile, and a benchmark.
 
+## 📊 Leaderboard — what agent menus cost today
+
+The headline artifact: [**`docs/LEADERBOARD.md`**](docs/LEADERBOARD.md) ranks **20 real public APIs** by the tokens their *naive* agent menu costs — what a generic OpenAPI→tools / MCP bridge makes an agent read **every session, before it does anything**.
+
+| API | naive menu (bucket A) | LAP compact | saved |
+| --- | ---: | ---: | ---: |
+| Kubernetes | 2,818,799 | 45,015 | **+98%** |
+| Amazon EC2 | 606,132 | 63,158 | **+90%** |
+| Jira Cloud | 345,552 | 17,996 | **+95%** |
+| Stripe | 231,586 | 32,860 | **+86%** |
+| _…16 more (GitHub, OpenAI, Slack, Notion, …)_ | | | |
+
+Across all 20, naive menus total **~4.9M tokens**; LAP's compact menu would cut **~86%** on average (`tool_search` ~96%), and the table also estimates each API's heaviest result payload (bucket C). Reproduce it with `python experiments/leaderboard.py`. **[See the full leaderboard →](docs/LEADERBOARD.md)**
+
 Started as a sandbox for token-efficient LLM↔HTTP interaction; now the home of **LAP** — an open, neutral token-efficiency measurement + guidance layer for agent-facing APIs.
 
 ## Projects

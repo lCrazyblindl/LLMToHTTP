@@ -18,11 +18,12 @@ import pathlib
 import tempfile
 from datetime import date
 
-from lap import openapi_ir as ir, score, tokens
+from lap import openapi_ir as ir, score, tokens, estimate, lint
 
 LIST_URL = "https://api.apis.guru/v2/list.json"
 CACHE = pathlib.Path(tempfile.gettempdir()) / "lap-corpus"
 MAXBYTES = 16_000_000
+PAGE_SIZE = 20  # assumed items/page for the bucket-C (result-size) estimate
 
 # Well-known public APIs (resolved by substring against the APIs.guru directory).
 CURATED = [
@@ -83,6 +84,11 @@ def main() -> None:
                 print(f"skip (no ops): {key}")
                 continue
             a = score.score(spec)
+            result_cs = [est_c for op in ops
+                         for kind, _per, est_c in [estimate.estimate(spec, op, page_size=PAGE_SIZE)]
+                         if kind != "void"]
+            c_max = max(result_cs) if result_cs else 0
+            unpaged = sum(1 for f in lint.lint(spec) if f.rule == "R3")
             title = spec.get("info", {}).get("title", key)[:36]
             rows.append({
                 "api": title, "provider": key.split(":")[0], "ops": len(ops),
@@ -90,8 +96,10 @@ def main() -> None:
                 "tool_search": a["tool_search"],
                 "save_compact": _pct(a["compact_sig"], a["openapi_full"]),
                 "save_search": _pct(a["tool_search"], a["openapi_full"]),
+                "c_max": c_max, "unpaged": unpaged,
             })
-            print(f"OK {key:34} ops={len(ops):4} full={a['openapi_full']:6} compact={a['compact_sig']:6}")
+            print(f"OK {key:34} ops={len(ops):4} full={a['openapi_full']:6} "
+                  f"compact={a['compact_sig']:6} Cmax={c_max}")
         except Exception as e:  # noqa: BLE001
             print(f"FAIL {key}: {type(e).__name__}: {str(e)[:80]}")
 
@@ -110,36 +118,46 @@ def main() -> None:
         "pays, once per session, just to *see* the API. **compact** and **tool_search** are the "
         "LAP-style menus (compact signatures; lazy search+execute) generated from the same spec, "
         "with the % saved vs full. Sorted by the naive menu cost (heaviest first): the APIs at the "
-        "top cost agents the most tokens up front and have the most to gain from a leaner menu.",
+        "top cost agents the most tokens up front and have the most to gain from a leaner menu. "
+        "**heaviest result (C)** is the largest single response (bucket C) the estimator finds for "
+        "the API - the *recurring* per-call cost that field projection and pagination (LAP R1/R3) "
+        "target. It's a structural lower bound: top-level lists are counted at a full page, but "
+        "collections wrapped in an envelope (`{data:[...]}`, k8s `items`) are counted as ~one item, "
+        "so their real pages are larger.",
         "",
         f"- tokenizer: **{backend}**" + ("  _(approximate — relative ranking is the signal; set "
         "`ANTHROPIC_API_KEY` for faithful counts)_" if approx else "  _(faithful)_"),
         f"- APIs scored: **{len(rows)}**",
         "",
-        "| # | API | provider | ops | menu (full) | compact | save | tool_search | save |",
-        "| ---: | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: |",
+        "| # | API | provider | ops | menu A (full) | compact | save | tool_search | save | heaviest result (C) |",
+        "| ---: | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |",
     ]
     for i, r in enumerate(rows, 1):
         lines.append(
             f"| {i} | {r['api']} | {r['provider']} | {r['ops']} | {r['full']} | {r['compact']} | "
-            f"+{r['save_compact']}% | {r['tool_search']} | +{r['save_search']}% |"
+            f"+{r['save_compact']}% | {r['tool_search']} | +{r['save_search']}% | {r['c_max'] or '-'} |"
         )
 
     if rows:
         avg_compact = round(sum(r["save_compact"] for r in rows) / len(rows))
         avg_search = round(sum(r["save_search"] for r in rows) / len(rows))
         total_full = sum(r["full"] for r in rows)
+        n_unpaged = sum(1 for r in rows if r["unpaged"])
         lines += [
             "",
-            f"**Across all {len(rows)} APIs:** the naive menus total **{total_full:,} tokens**; "
-            f"`compact_sig` saves **+{avg_compact}%** on average and `tool_search` **+{avg_search}%** "
-            "(it wins most where operation counts are high). These APIs expose OpenAPI, which a "
-            "generic bridge turns into the naive menu — so for an agent front-end that saving is "
-            "mostly still on the table.",
+            f"**Across all {len(rows)} APIs:** the naive menus total **{total_full:,} tokens** (bucket "
+            f"A); `compact_sig` saves **+{avg_compact}%** on average and `tool_search` **+{avg_search}%** "
+            "(it wins most where operation counts are high). And that's before results come back: "
+            f"**{n_unpaged} of {len(rows)}** have list endpoints with **no pagination**, so an agent can "
+            "pull the *whole* collection into context (bucket C), not just a page. These APIs expose "
+            "OpenAPI, which a generic bridge turns into the naive menu — so for an agent front-end the "
+            "saving is mostly still on the table.",
             "",
-            "_Methodology: bucket A only (the menu in context). B (the call) and C (results) need "
-            "per-API tasks — see [`experiments/token-bench`](../experiments/token-bench/README.md). "
-            "Regenerate with `python experiments/leaderboard.py`._",
+            "_Methodology: **A** (menu) is measured; **heaviest result (C)** is estimated from response "
+            f"schemas (structural lower bound; top-level lists at ~{PAGE_SIZE} items/page, envelope-"
+            "wrapped lists at ~1 item). **B** (the call) needs per-API tasks - see "
+            "[`experiments/token-bench`](../experiments/token-bench/README.md). Regenerate with "
+            "`python experiments/leaderboard.py`._",
         ]
 
     out = pathlib.Path(__file__).resolve().parents[1] / "docs" / "LEADERBOARD.md"
