@@ -148,15 +148,20 @@ command, or restart Claude Code so all tools inherit it).
   raised on the literal `<|endoftext|>`
   in OpenAI's spec — `lap/tokens.py` now encodes with `disallowed_special=()` (+regression test, 25
   passing).  `[no key]`
-- [x] **Stage 19 — Ship it.** Artifacts done by the agent: `CHANGELOG.md` (0.3.0), version bump
-  `pyproject` `0.1.0 → 0.3.0` + classifiers + Changelog/Leaderboard urls, a composite marketplace
-  **GitHub Action** (`action.yml`), and [`RELEASING.md`](RELEASING.md). **Published, 2026-07-01:**
-  `python -m build` → `twine check` (both PASSED) → `twine upload` — **`lap-score` 0.3.0 is live on
-  PyPI**: https://pypi.org/project/lap-score/0.3.0/. Verified for real in a fresh throwaway venv:
-  `pip install lap-score` + `lap score <spec>` works exactly as documented. Git tag `v0.3.0` pushed.
-  **Still open (owner, blocked on credentials — no `gh` CLI, no `GH_TOKEN` in this box):**
-  `gh release create v0.3.0 dist/*` (or the GitHub web UI) to turn the tag into a Release, and then
-  "Publish this Action to the Marketplace". See `RELEASING.md` for exact steps.  `[owner action]`
+- [x] **Stage 19 — Ship it. FULLY RELEASED, 2026-07-01.** Artifacts: `CHANGELOG.md` (0.3.0,
+  folded in the v0.4 real-tool findings before cutting the release), version bump `pyproject`
+  `0.1.0 → 0.3.0` + classifiers + Changelog/Leaderboard urls, a composite marketplace **GitHub
+  Action** (`action.yml`), and [`RELEASING.md`](RELEASING.md). **PyPI:** `python -m build` →
+  `twine check` (both PASSED) → `twine upload` — **`lap-score` 0.3.0 is live**:
+  https://pypi.org/project/lap-score/0.3.0/, verified for real in a fresh throwaway venv (`pip
+  install lap-score` + `lap score <spec>` worked exactly as documented). **GitHub:** tag `v0.3.0`
+  pushed; `gh release create v0.3.0` published (both dist files attached) at
+  https://github.com/lCrazyblindl/lap/releases/tag/v0.3.0 — unblocked mid-session when the owner
+  ran `gh auth login` themselves (the agent's shell had a stale PATH cached from before `gh` was
+  installed; refreshing `$env:Path` from the registry inside the command found it). Also fixed the
+  repo's GitHub description to the canonical one now that `gh repo edit` was available. **Only
+  remaining, optional, UI-only step:** "Publish this Action to the Marketplace" from the release
+  page (owner action — no `gh` command for this one).  `[owner action, optional]`
 
 ## Stages — v0.4 (measure real tools, not our own)
 
@@ -263,10 +268,13 @@ compact manifest), `lap score before after` diff mode, profile L0 "be-discoverab
 
 ## Status
 
-**v0.3 complete (stages 0–19); v0.4 COMPLETE (R1–R8) — "measure real tools, not our own."** Only
-the owner's v0.3 publish remains as outside action (`python -m build` → `twine upload` →
-`gh release`, see [`RELEASING.md`](RELEASING.md)); every agent-side stage of both v0.3 and v0.4 is
-done. v0.4 pivoted the benchmark from our own interface variants to real third-party artifacts —
+**v0.3 complete (stages 0–19); v0.4 COMPLETE (R1–R8); v0.3.0 FULLY RELEASED 2026-07-01 —
+"measure real tools, not our own."** `lap-score` 0.3.0 is live on PyPI
+(https://pypi.org/project/lap-score/0.3.0/, verified via a fresh-venv install) and the GitHub
+release is published (https://github.com/lCrazyblindl/lap/releases/tag/v0.3.0, both dist files
+attached). The only thing left is optional and UI-only: listing the Action on the GitHub
+Marketplace. v0.4 pivoted the benchmark from our own interface variants to real third-party
+artifacts —
 real generators, a real live API, real servers, real Anthropic features — and found the compact/
 efficient story holds **most, not all**, of the time:
 
