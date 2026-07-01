@@ -156,35 +156,62 @@ command, or restart Claude Code so all tools inherit it).
   `twine upload` to PyPI + `gh release create v0.3.0` (and "Publish this Action to the
   Marketplace"). See `RELEASING.md`.  `[owner action]`
 
+## Stages — v0.4 (measure real tools, not our own)
+
+New direction (owner's push): a benchmark should measure **real, third-party artifacts**, not
+only our own interface generators. Reproducible scope = **OSS tools + real Anthropic API
+features** (we have a key); commercial hosted products (Speakeasy Gram, Stainless, StackOne,
+Cloudflare Code Mode) are **cited, not run**. Our own variants stay as a controlled demo of the
+*principle*; this track shows it holds against real tools. Same stop/resume model. Inventory of
+candidates: [`docs/REAL-TOOLS.md`](docs/REAL-TOOLS.md).
+
+- [x] **R1 — Inventory the reproducible real tools.** Done: [`docs/REAL-TOOLS.md`](docs/REAL-TOOLS.md)
+  maps OSS OpenAPI→MCP generators (FastMCP + `openapi-to-mcp` / `openapi-mcp` / cnoe
+  `openapi-mcp-codegen`), a real OSS optimizer (**Atlassian `mcp-compressor`**), locally-runnable
+  real MCP servers (`uvx` reference servers; Docker `github`/`filesystem`), and the real Anthropic
+  features (Tool Search, code execution) — with an explicit account-gated exclusion list.  `[no key]`
+- [ ] **▶ R2 — Real generator shoot-out (bucket A).** ⭐ Feed one real OpenAPI (live Swagger
+  Petstore) through the ✅ Python generators; take each generator's **actual** tool defs and score
+  them with `lap score`. Neutral "which real generator emits the leanest menu", beside our
+  synthetic `openapi_full`/`compact_sig`. _Done: a real-generator table._  `[no key]`
+- [ ] **R3 — Score the live MCP ecosystem.** Run real published servers (`uvx mcp-server-git`/
+  `-fetch`/`-time`; Docker `github`/`filesystem`) and `lap score --mcp-url` each; add a real-servers
+  section to the leaderboard. _Done: real servers scored._  `[no key / Docker]`
+- [ ] **R4 — End-to-end on a real live API.** ⭐ Real public API (live Swagger Petstore first),
+  interface via **real FastMCP**, real tasks, live matrix on a real model — closes the pet-zoo toy
+  gap. _Done: `validation-real.md`._  `[key]`
+- [ ] **R5 — Real Tool Search head-to-head.** Anthropic's **real** Tool Search on a big real
+  toolset vs naive; real tokens + accuracy vs our `tool_search`. _Done: real-vs-ours row._  `[key + beta]`
+- [ ] **R6 — Real code-execution head-to-head.** Anthropic's **real** code-execution (and/or
+  `mcp-compressor`) vs our sandbox `code_exec` on real tasks. _Done: real-vs-ours row._  `[key + beta]`
+- [ ] **R7 — Envelope-aware bucket C.** Teach `estimate` the envelope-list pattern (`{data:[…]}`,
+  k8s `items`) so bucket-C is honest on real APIs. _Done: fix + test._  `[no key]`
+- [ ] **R8 — Reframe the story honestly.** README/profile/LANDSCAPE: our variants = principle in
+  control; real-tool track = holds in practice; keep "ours vs real" explicit. _Done: docs updated._  `[no key]`
+
+Recommended order: **R1 → R2 → R4 → R3 → R7 → R5 → R6 → R8**.
+
 ### Further backlog (unscheduled, key-free)
 **Shipped after the v0.3 stages:** the LAP rules as a **Spectral ruleset**
 ([`spectral/`](spectral/README.md), executed + asserted in CI, verified locally on Spectral
 6.11.0 = same 15 findings as `lap lint`); the leaderboard gained a **bucket-C** (heaviest
-result) column. Still open — two honest gaps surfaced along the way:
-**(i) validate on a real third-party API end-to-end** — today the full A/B/C + live-accuracy
-matrix runs on the pet-zoo *toy* (top-level-array lists) + a real model; only bucket A is
-measured on real specs (leaderboard). Run B/C + live against e.g. Stripe/GitHub/Petstore, or
-head-to-head vs a real competitor's compact menu (StackOne/Speakeasy).
-**(ii) estimate-C realism for envelope-wrapped lists** (`{data:[…]}`, k8s `items`) — the
-leaderboard's C column counts these as ~1 item and undercounts; teach `estimate` the envelope
-pattern (also schema `examples`, configurable string length).
-Plus: a short **Related work / credit** note in the README, caching economics
+result) column. _(The two honest gaps that surfaced — real-API end-to-end validation, and
+envelope-aware bucket C — are now scheduled as v0.4 **R4** and **R7**.)_
+Still open: a short **Related work / credit** note in the README, caching economics
 (first-call vs amortized A), bucket-B estimate, NLWeb endpoint scoring, lint auto-fix (emit a
 compact manifest), `lap score before after` diff mode, profile L0 "be-discoverable" rule
 (llms.txt / .well-known / NLWeb), CONTRIBUTING + issue templates.
 
 ## Status
 
-**v0.3 complete (stages 0–19) — all agent work done.** v0.3 delivered: finished the rename to
-`lap` (14); honest validation incl. a live **success-rate matrix** where compression didn't cost
-accuracy (15); grouped **≥2-per-category** benchmark tasks (16); a real-spec **fuzz corpus** +
-Swagger-2.0 / media-type parser fixes (17); the **20-API efficiency leaderboard** (18); and
-**release artifacts** — CHANGELOG, version `0.3.0`, a marketplace GitHub Action, `RELEASING.md`
-(19). **Only owner publish steps remain:** `python -m build` → `twine upload` to PyPI +
-`gh release create v0.3.0` (see [`RELEASING.md`](RELEASING.md)). Remaining open work is the
-key-free **backlog** below (estimate-C realism, caching economics, bucket-B estimate, NLWeb
-scoring, lint auto-fix, `score before after` diff, L0 "be-discoverable" rule, CONTRIBUTING) plus a
-**broader 15(b) matrix** (more models/tasks/repeats). Say "continue LAP" to pick one.
+**v0.3 complete (stages 0–19); v0.4 in progress — "measure real tools, not our own."** Only the
+owner's v0.3 publish remains (`python -m build` → `twine upload` + `gh release`, see
+[`RELEASING.md`](RELEASING.md)). v0.4 pivots the benchmark to real third-party artifacts: **R1
+done** ([`docs/REAL-TOOLS.md`](docs/REAL-TOOLS.md) — inventory of the reproducible OSS generators/
+optimizers/servers + real Anthropic features, with the account-gated exclusions). **▶ R2 — real
+generator shoot-out (bucket A):** score several *real* OpenAPI→MCP generators' actual menus on the
+live Swagger Petstore. Say "continue LAP" to run R2. (Post-R2 order: R2 → R4 → R3 → R7 → R5 → R6 →
+R8.) A key-free **backlog** remains below.
 
 ## Sources captured for Stage 1 (so it can be done without re-searching)
 
