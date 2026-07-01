@@ -148,13 +148,15 @@ command, or restart Claude Code so all tools inherit it).
   raised on the literal `<|endoftext|>`
   in OpenAI's spec — `lap/tokens.py` now encodes with `disallowed_special=()` (+regression test, 25
   passing).  `[no key]`
-- [x] **Stage 19 — Ship it (artifacts ready; owner publishes).** Done by the agent:
-  `CHANGELOG.md` (0.3.0), version bump `pyproject` `0.1.0 → 0.3.0` + classifiers + Changelog/
-  Leaderboard urls, a composite marketplace **GitHub Action** (`action.yml`, used as
-  `uses: lCrazyblindl/lap@v0.3.0`; README snippet), and [`RELEASING.md`](RELEASING.md) with the
-  owner's exact publish steps. **Remaining (owner, needs credentials):** `python -m build` →
-  `twine upload` to PyPI + `gh release create v0.3.0` (and "Publish this Action to the
-  Marketplace"). See `RELEASING.md`.  `[owner action]`
+- [x] **Stage 19 — Ship it.** Artifacts done by the agent: `CHANGELOG.md` (0.3.0), version bump
+  `pyproject` `0.1.0 → 0.3.0` + classifiers + Changelog/Leaderboard urls, a composite marketplace
+  **GitHub Action** (`action.yml`), and [`RELEASING.md`](RELEASING.md). **Published, 2026-07-01:**
+  `python -m build` → `twine check` (both PASSED) → `twine upload` — **`lap-score` 0.3.0 is live on
+  PyPI**: https://pypi.org/project/lap-score/0.3.0/. Verified for real in a fresh throwaway venv:
+  `pip install lap-score` + `lap score <spec>` works exactly as documented. Git tag `v0.3.0` pushed.
+  **Still open (owner, blocked on credentials — no `gh` CLI, no `GH_TOKEN` in this box):**
+  `gh release create v0.3.0 dist/*` (or the GitHub web UI) to turn the tag into a Release, and then
+  "Publish this Action to the Marketplace". See `RELEASING.md` for exact steps.  `[owner action]`
 
 ## Stages — v0.4 (measure real tools, not our own)
 

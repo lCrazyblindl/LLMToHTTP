@@ -1,7 +1,13 @@
 # Releasing `lap`
 
-The toolkit and artifacts are prepared in-repo; **publishing needs the owner** (PyPI +
-GitHub credentials the agent doesn't have). Steps:
+The toolkit and artifacts are prepared in-repo; publishing needs credentials only the owner
+holds (never pasted into chat — set as environment variables, or via `gh auth login`). Steps:
+
+**v0.3.0 status (2026-07-01): PyPI done, GitHub release still open.**
+`lap-score` 0.3.0 is live: https://pypi.org/project/lap-score/0.3.0/ (built, `twine check`
+PASSED, uploaded, and verified in a fresh venv — `pip install lap-score` + `lap score <spec>`
+works). Git tag `v0.3.0` is pushed. Step 4 (the GitHub Release object + Marketplace listing) is
+blocked on `gh` CLI / a `GH_TOKEN` — neither was available in the agent's environment.
 
 ## 1. Pre-flight
 ```bash
@@ -19,7 +25,7 @@ python -m build                # -> dist/lap_score-<version>.tar.gz + .whl
 twine check dist/*
 ```
 
-## 3. Publish to PyPI (owner)
+## 3. Publish to PyPI (owner) — ✅ done for 0.3.0
 ```bash
 # optional dry run on TestPyPI first:
 # twine upload -r testpypi dist/*
@@ -28,13 +34,16 @@ twine upload dist/*            # needs a PyPI API token (e.g. TWINE_USERNAME=__t
 After this, `pip install lap-score` works for everyone (and the GitHub Action installs
 from PyPI instead of falling back to git).
 
-## 4. Cut the GitHub release (owner)
+## 4. Cut the GitHub release (owner) — tag pushed, Release object still open
 ```bash
-git tag v0.3.0
-git push origin v0.3.0
+git tag v0.3.0          # ✅ done and pushed
+git push origin v0.3.0  # ✅ done
 gh release create v0.3.0 dist/* --title "lap 0.3.0" \
   --notes-file <(awk '/^## \[0.3.0\]/{f=1;next} /^## \[/{f=0} f' CHANGELOG.md)
 ```
+Needs `gh` CLI authenticated (`gh auth login`) or a `GH_TOKEN`/`GITHUB_TOKEN` — set these
+yourself in your own terminal, never paste the token into chat. No `dist/*` on hand? Rebuild
+with steps 1–2 first (the files aren't committed to git).
 Tagging `v0.3.0` also makes the composite Action usable as
 `uses: lCrazyblindl/lap@v0.3.0`. To list it on the GitHub Marketplace, open the release
 (or `action.yml`) on GitHub and choose **“Publish this Action to the Marketplace”** — it
