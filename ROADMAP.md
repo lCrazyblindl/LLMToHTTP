@@ -179,12 +179,16 @@ candidates: [`docs/REAL-TOOLS.md`](docs/REAL-TOOLS.md).
   across 3 real tools). Honest caveat: the generators have conflicting pinned deps, so they were
   measured across two venvs (they broke pet-zoo once; env restored, 25 tests green); `generators.py`
   skips absent generators with a note.  `[no key]`
-- [ ] **R3 — Score the live MCP ecosystem.** Run real published servers (`uvx mcp-server-git`/
+- [ ] **▶ R3 — Score the live MCP ecosystem.** Run real published servers (`uvx mcp-server-git`/
   `-fetch`/`-time`; Docker `github`/`filesystem`) and `lap score --mcp-url` each; add a real-servers
   section to the leaderboard. _Done: real servers scored._  `[no key / Docker]`
-- [ ] **▶ R4 — End-to-end on a real live API.** ⭐ Real public API (live Swagger Petstore first),
-  interface via **real FastMCP**, real tasks, live matrix on a real model — closes the pet-zoo toy
-  gap. _Done: `validation-real.md`._  `[key]`
+- [x] **R4 — End-to-end on a real live API.** Done: [`experiments/real_api_matrix.py`]
+  (experiments/real_api_matrix.py) runs the live matrix on the **hosted Swagger Petstore** — real
+  HTTP execution, Claude Haiku, k=3 — comparing our naive/compact menus and the **real FastMCP**
+  menu → [`validation-real.md`](experiments/token-bench/validation-real.md). **Compression didn't
+  cost accuracy — it helped:** naive `openapi_full` *failed* the count task **0/3** (heaviest +
+  least reliable), while `compact_sig` and **real FastMCP** were **3/3**, and compact used ~half the
+  tokens of naive. Closes the pet-zoo toy gap. Caveats: 1 cheap model, k=3 (noisy), 2 tasks, 1 API.  `[key]`
 - [ ] **R5 — Real Tool Search head-to-head.** Anthropic's **real** Tool Search on a big real
   toolset vs naive; real tokens + accuracy vs our `tool_search`. _Done: real-vs-ours row._  `[key + beta]`
 - [ ] **R6 — Real code-execution head-to-head.** Anthropic's **real** code-execution (and/or
@@ -215,10 +219,15 @@ owner's v0.3 publish remains (`python -m build` → `twine upload` + `gh release
 **R1** ([`docs/REAL-TOOLS.md`](docs/REAL-TOOLS.md) inventory) and **R2** — a **real generator
 shoot-out** ([`docs/GENERATORS.md`](docs/GENERATORS.md)): three real OpenAPI→MCP generators on the
 live Petstore all emit menus **heavier than the naive baseline and 5–28× heavier than compact** —
-the ecosystem leaves the savings unclaimed, confirmed on real tools. **▶ R4 — end-to-end on a real
-live API** (`[key]`): interface a real public API (live Swagger Petstore) via real FastMCP, real
-tasks, live matrix on a real model — closes the pet-zoo toy gap. Say "continue LAP" to run R4.
-(Order: R4 → R3 → R7 → R5 → R6 → R8.) A key-free **backlog** remains below.
+the ecosystem leaves the savings unclaimed, confirmed on real tools. **R4** — end-to-end on the
+**live hosted Swagger Petstore** (real HTTP, real model, real FastMCP menu, k=3) →
+[`validation-real.md`](experiments/token-bench/validation-real.md): **compression didn't cost
+accuracy — it helped** (naive `openapi_full` failed the count task 0/3; `compact_sig` and real
+FastMCP 3/3, compact at ~half the tokens); the pet-zoo toy gap is closed. **▶ R3 — score the live
+MCP ecosystem** (`[no key / Docker]`): `lap score --mcp-url` several real published MCP servers
+(`uvx mcp-server-git`/`-fetch`/`-time`; Docker `github`/`filesystem`) → a real-servers section in
+the leaderboard. Say "continue LAP" to run R3. (Order: R3 → R7 → R5 → R6 → R8.) A key-free
+**backlog** remains below.
 
 ## Sources captured for Stage 1 (so it can be done without re-searching)
 
