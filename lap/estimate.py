@@ -16,6 +16,10 @@ from . import tokens
 
 _PLACEHOLDER = {"string": "string", "integer": 0, "number": 0, "boolean": True, "null": None}
 
+# Common envelope keys real APIs wrap a list in, preferred in this order when
+# more than one array-typed property is present (rare, but pick deterministically).
+_ENVELOPE_KEYS = ("data", "items", "results", "value", "values", "content", "entries", "records")
+
 
 def example_instance(spec: dict, schema, stack: frozenset = frozenset(), depth: int = 0):
     if not isinstance(schema, dict) or depth > 6:
@@ -57,9 +61,38 @@ def _dumps(value) -> str:
     return json.dumps(value, separators=(",", ":"), default=str, ensure_ascii=False)
 
 
+def _is_array_schema(spec: dict, schema) -> bool:
+    if not isinstance(schema, dict):
+        return False
+    deref = ir._deref(spec, schema)
+    return deref.get("type") == "array" or "items" in deref
+
+
+def _find_envelope_key(spec: dict, schema: dict) -> str | None:
+    """If `schema` is an object with an array-typed property - a common
+    `{"data": [...]}` / k8s `{"items": [...]}` / OData `{"value": [...]}` envelope -
+    return that property's name. Real APIs almost always wrap collections this
+    way; without this, an enveloped list scores as a tiny "object" (one item deep
+    in the envelope) and bucket C is badly undercounted."""
+    props = ir._collect_properties(spec, schema)
+    candidates = [fname for fname, prop in props.items() if _is_array_schema(spec, prop)]
+    if not candidates:
+        return None
+    for key in _ENVELOPE_KEYS:
+        if key in candidates:
+            return key
+    return candidates[0]
+
+
 def estimate(spec: dict, op: ir.Op, page_size: int = 20) -> tuple[str, int, int]:
     """Returns (kind, per_unit_tokens, estimated_C_tokens) for an operation's
-    success response. kind in {"void", "object", "list"}."""
+    success response. kind in {"void", "object", "list"}.
+
+    A bare top-level array is scaled by `page_size` directly. A list wrapped in
+    an envelope object (`{"data": [...], "total_count": ...}`, k8s `{"items": [...],
+    "kind": ..., "metadata": ...}`) is detected too: the sibling fields are kept
+    (counted once) and the array property is scaled to `page_size` items, so the
+    *whole* envelope at a page is what's estimated - not just one wrapped item."""
     schema = _success_schema(spec, op)
     if not isinstance(schema, dict):
         return ("void", 0, 0)
@@ -67,5 +100,16 @@ def estimate(spec: dict, op: ir.Op, page_size: int = 20) -> tuple[str, int, int]
     if schema.get("type") == "array" or "items" in deref:
         per = tokens.count(_dumps(example_instance(spec, deref.get("items", {}))))
         return ("list", per, per * page_size + 5)  # +5 for the array brackets/commas
+
+    envelope_key = _find_envelope_key(spec, schema)
+    if envelope_key:
+        instance = example_instance(spec, schema)
+        arr = instance.get(envelope_key) if isinstance(instance, dict) else None
+        if isinstance(arr, list) and arr:
+            item = arr[0]
+            per = tokens.count(_dumps(item))
+            instance[envelope_key] = [item] * page_size
+            return ("list", per, tokens.count(_dumps(instance)))
+
     per = tokens.count(_dumps(example_instance(spec, schema)))
     return ("object", per, per)

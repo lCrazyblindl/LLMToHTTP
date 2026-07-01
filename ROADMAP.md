@@ -193,12 +193,18 @@ candidates: [`docs/REAL-TOOLS.md`](docs/REAL-TOOLS.md).
   cost accuracy — it helped:** naive `openapi_full` *failed* the count task **0/3** (heaviest +
   least reliable), while `compact_sig` and **real FastMCP** were **3/3**, and compact used ~half the
   tokens of naive. Closes the pet-zoo toy gap. Caveats: 1 cheap model, k=3 (noisy), 2 tasks, 1 API.  `[key]`
-- [ ] **R5 — Real Tool Search head-to-head.** Anthropic's **real** Tool Search on a big real
+- [ ] **▶ R5 — Real Tool Search head-to-head.** Anthropic's **real** Tool Search on a big real
   toolset vs naive; real tokens + accuracy vs our `tool_search`. _Done: real-vs-ours row._  `[key + beta]`
 - [ ] **R6 — Real code-execution head-to-head.** Anthropic's **real** code-execution (and/or
   `mcp-compressor`) vs our sandbox `code_exec` on real tasks. _Done: real-vs-ours row._  `[key + beta]`
-- [ ] **▶ R7 — Envelope-aware bucket C.** Teach `estimate` the envelope-list pattern (`{data:[…]}`,
-  k8s `items`) so bucket-C is honest on real APIs. _Done: fix + test._  `[no key]`
+- [x] **R7 — Envelope-aware bucket C.** Done: `lap/estimate.py` detects a list wrapped in an
+  envelope object (`_find_envelope_key` — Stripe/JSON:API `{"data":[...]}`, k8s `{"items":[...]}`,
+  OData `{"value":[...]}`, preferring conventional names deterministically) and scales it to a
+  full page **with its sibling fields kept**, instead of scoring it as a tiny "object". Regenerated
+  [`docs/LEADERBOARD.md`](docs/LEADERBOARD.md): **15 of 20** real APIs' heaviest-result estimate
+  changed, several substantially (Kubernetes 1303→**7613**, Stripe 1588→**15868**, DigitalOcean
+  616→**12244**, Notion 412→**6118**) — the previous numbers were undercounting real, enveloped
+  responses. +4 tests (29 passing).  `[no key]`
 - [ ] **R8 — Reframe the story honestly.** README/profile/LANDSCAPE: our variants = principle in
   control; real-tool track = holds in practice; keep "ours vs real" explicit. _Done: docs updated._  `[no key]`
 
@@ -209,7 +215,7 @@ Recommended order: **R1 → R2 → R4 → R3 → R7 → R5 → R6 → R8**.
 ([`spectral/`](spectral/README.md), executed + asserted in CI, verified locally on Spectral
 6.11.0 = same 15 findings as `lap lint`); the leaderboard gained a **bucket-C** (heaviest
 result) column. _(The two honest gaps that surfaced — real-API end-to-end validation, and
-envelope-aware bucket C — are now scheduled as v0.4 **R4** and **R7**.)_
+envelope-aware bucket C — became v0.4 **R4** and **R7**, both now done.)_
 Still open: a short **Related work / credit** note in the README, caching economics
 (first-call vs amortized A), bucket-B estimate, NLWeb endpoint scoring, lint auto-fix (emit a
 compact manifest), `lap score before after` diff mode, profile L0 "be-discoverable" rule
@@ -230,10 +236,13 @@ accuracy — it helped** (naive `openapi_full` failed the count task 0/3; `compa
 FastMCP 3/3, compact at ~half the tokens); the pet-zoo toy gap is closed. **R3** — scored three
 real published **MCP servers** over stdio ([`docs/MCP-SERVERS.md`](docs/MCP-SERVERS.md)):
 git/fetch/time advertise 283–1418-token menus that a compact rendering cuts **~89%**. So across
-**R2–R4** the pattern holds on real generators, a real live API, and real servers alike. **▶ R7 —
-envelope-aware bucket C** (`[no key]`): teach `estimate` the `{data:[…]}` / k8s `items` envelope
-pattern so bucket-C is honest on real APIs (the leaderboard undercounts these). Say "continue LAP"
-to run R7. (Order: R7 → R5 → R6 → R8; R5/R6 are `[key + beta]`.) A key-free **backlog** remains below.
+**R2–R4** the pattern holds on real generators, a real live API, and real servers alike. **R7** —
+taught `estimate` the `{data:[…]}` / k8s `items` / OData `{value:[…]}` envelope pattern, so
+bucket-C is honest on real APIs; **15 of 20** leaderboard rows changed (Kubernetes 1303→7613,
+Stripe 1588→15868, DigitalOcean 616→12244) — the old numbers undercounted enveloped lists. **▶ R5
+— real Tool Search head-to-head** (`[key + beta]`): Anthropic's real Tool Search on a big real
+toolset vs naive, real tokens + accuracy, vs our `tool_search` approximation. Say "continue LAP"
+to run R5. (Order: R5 → R6 → R8.) A key-free **backlog** remains below.
 
 ## Sources captured for Stage 1 (so it can be done without re-searching)
 

@@ -121,9 +121,9 @@ def main() -> None:
         "top cost agents the most tokens up front and have the most to gain from a leaner menu. "
         "**heaviest result (C)** is the largest single response (bucket C) the estimator finds for "
         "the API - the *recurring* per-call cost that field projection and pagination (LAP R1/R3) "
-        "target. It's a structural lower bound: top-level lists are counted at a full page, but "
-        "collections wrapped in an envelope (`{data:[...]}`, k8s `items`) are counted as ~one item, "
-        "so their real pages are larger.",
+        f"target. It's a structural lower bound at ~{PAGE_SIZE} items/page, envelope-aware: a list "
+        "wrapped in an envelope (`{data:[...]}`, k8s `items`) is scaled to a full page too, with its "
+        "sibling fields (counts, cursors, kind/apiVersion, ...) counted once alongside it.",
         "",
         f"- tokenizer: **{backend}**" + ("  _(approximate — relative ranking is the signal; set "
         "`ANTHROPIC_API_KEY` for faithful counts)_" if approx else "  _(faithful)_"),
@@ -154,8 +154,8 @@ def main() -> None:
             "saving is mostly still on the table.",
             "",
             "_Methodology: **A** (menu) is measured; **heaviest result (C)** is estimated from response "
-            f"schemas (structural lower bound; top-level lists at ~{PAGE_SIZE} items/page, envelope-"
-            "wrapped lists at ~1 item). **B** (the call) needs per-API tasks - see "
+            f"schemas (structural lower bound; top-level AND envelope-wrapped lists scaled to "
+            f"~{PAGE_SIZE} items/page). **B** (the call) needs per-API tasks - see "
             "[`experiments/token-bench`](../experiments/token-bench/README.md). Regenerate with "
             "`python experiments/leaderboard.py`._",
         ]

@@ -135,6 +135,76 @@ def test_estimate_list_heavier_than_object(spec):
     assert list_c >= per * 20  # page multiplies the per-item cost
 
 
+# --- envelope-aware bucket C (v0.4 R7) ---------------------------------------
+def _envelope_spec(list_key: str, extra_props: dict) -> dict:
+    item_schema = {"type": "object", "properties": {
+        "id": {"type": "integer"}, "name": {"type": "string"},
+    }}
+    resp_schema = {"type": "object", "properties": {
+        list_key: {"type": "array", "items": item_schema}, **extra_props,
+    }}
+    return {
+        "openapi": "3.0.0", "info": {"title": "Enveloped"},
+        "paths": {"/things": {"get": {
+            "operationId": "listThings",
+            "responses": {"200": {"content": {"application/json": {"schema": resp_schema}}}},
+        }}},
+    }
+
+
+def test_estimate_envelope_data_key():
+    # Stripe/JSON:API-style {"data": [...], "total_count": ...} - a real list, not
+    # a lone wrapped item. Without envelope detection this scored as "object".
+    from lap import estimate
+
+    spec = _envelope_spec("data", {"total_count": {"type": "integer"}})
+    op = ir.operations(spec)[0]
+    kind, per, c = estimate.estimate(spec, op, page_size=20)
+    assert kind == "list"
+    assert per > 0
+    assert c > per * 15  # scaled to ~page_size items, not one wrapped item
+
+
+def test_estimate_envelope_items_key_k8s_style():
+    # Kubernetes-style {"items": [...], "kind": ..., "apiVersion": ...}.
+    from lap import estimate
+
+    spec = _envelope_spec("items", {"kind": {"type": "string"}, "apiVersion": {"type": "string"}})
+    op = ir.operations(spec)[0]
+    kind, per, c = estimate.estimate(spec, op, page_size=10)
+    assert kind == "list" and c > per * 8
+
+
+def test_estimate_envelope_prefers_conventional_key_when_ambiguous():
+    # Two array-typed properties: the conventional name wins deterministically.
+    from lap.estimate import _find_envelope_key
+
+    schema = {"type": "object", "properties": {
+        "weird_list_name": {"type": "array", "items": {"type": "string"}},
+        "data": {"type": "array", "items": {"type": "string"}},
+    }}
+    assert _find_envelope_key({}, schema) == "data"
+
+
+def test_estimate_no_envelope_for_plain_object():
+    # A plain object with no array-typed property must stay "object", not "list".
+    from lap import estimate
+
+    spec = {
+        "openapi": "3.0.0", "info": {"title": "Plain"},
+        "paths": {"/thing": {"get": {
+            "operationId": "getThing",
+            "responses": {"200": {"content": {"application/json": {"schema": {
+                "type": "object",
+                "properties": {"id": {"type": "integer"}, "name": {"type": "string"}},
+            }}}}},
+        }}},
+    }
+    op = ir.operations(spec)[0]
+    kind, _per, _c = estimate.estimate(spec, op, page_size=20)
+    assert kind == "object"
+
+
 # --- --json / CI gate (Stage 10) --------------------------------------------
 def test_score_gather_shape(spec):
     from types import SimpleNamespace
