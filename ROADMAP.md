@@ -170,14 +170,19 @@ candidates: [`docs/REAL-TOOLS.md`](docs/REAL-TOOLS.md).
   `openapi-mcp-codegen`), a real OSS optimizer (**Atlassian `mcp-compressor`**), locally-runnable
   real MCP servers (`uvx` reference servers; Docker `github`/`filesystem`), and the real Anthropic
   features (Tool Search, code execution) — with an explicit account-gated exclusion list.  `[no key]`
-- [ ] **▶ R2 — Real generator shoot-out (bucket A).** ⭐ Feed one real OpenAPI (live Swagger
-  Petstore) through the ✅ Python generators; take each generator's **actual** tool defs and score
-  them with `lap score`. Neutral "which real generator emits the leanest menu", beside our
-  synthetic `openapi_full`/`compact_sig`. _Done: a real-generator table._  `[no key]`
+- [x] **R2 — Real generator shoot-out (bucket A).** Done: [`docs/GENERATORS.md`](docs/GENERATORS.md)
+  + [`experiments/generators.py`](experiments/generators.py) score **three real** OpenAPI→MCP
+  generators on the live Swagger Petstore (19 ops): openapi-to-mcp **2130**, FastMCP **2226**,
+  openapi-mcp **4274** (→ **11756** with response schemas) — **every one heavier than the naive
+  baseline (1740), and 5–28× heavier than a compact menu (415)**. No real generator ships the
+  compact form → the savings are unclaimed by the ecosystem (mirrors "real MCP is heavier", now
+  across 3 real tools). Honest caveat: the generators have conflicting pinned deps, so they were
+  measured across two venvs (they broke pet-zoo once; env restored, 25 tests green); `generators.py`
+  skips absent generators with a note.  `[no key]`
 - [ ] **R3 — Score the live MCP ecosystem.** Run real published servers (`uvx mcp-server-git`/
   `-fetch`/`-time`; Docker `github`/`filesystem`) and `lap score --mcp-url` each; add a real-servers
   section to the leaderboard. _Done: real servers scored._  `[no key / Docker]`
-- [ ] **R4 — End-to-end on a real live API.** ⭐ Real public API (live Swagger Petstore first),
+- [ ] **▶ R4 — End-to-end on a real live API.** ⭐ Real public API (live Swagger Petstore first),
   interface via **real FastMCP**, real tasks, live matrix on a real model — closes the pet-zoo toy
   gap. _Done: `validation-real.md`._  `[key]`
 - [ ] **R5 — Real Tool Search head-to-head.** Anthropic's **real** Tool Search on a big real
@@ -206,12 +211,14 @@ compact manifest), `lap score before after` diff mode, profile L0 "be-discoverab
 
 **v0.3 complete (stages 0–19); v0.4 in progress — "measure real tools, not our own."** Only the
 owner's v0.3 publish remains (`python -m build` → `twine upload` + `gh release`, see
-[`RELEASING.md`](RELEASING.md)). v0.4 pivots the benchmark to real third-party artifacts: **R1
-done** ([`docs/REAL-TOOLS.md`](docs/REAL-TOOLS.md) — inventory of the reproducible OSS generators/
-optimizers/servers + real Anthropic features, with the account-gated exclusions). **▶ R2 — real
-generator shoot-out (bucket A):** score several *real* OpenAPI→MCP generators' actual menus on the
-live Swagger Petstore. Say "continue LAP" to run R2. (Post-R2 order: R2 → R4 → R3 → R7 → R5 → R6 →
-R8.) A key-free **backlog** remains below.
+[`RELEASING.md`](RELEASING.md)). v0.4 pivots the benchmark to real third-party artifacts. Done:
+**R1** ([`docs/REAL-TOOLS.md`](docs/REAL-TOOLS.md) inventory) and **R2** — a **real generator
+shoot-out** ([`docs/GENERATORS.md`](docs/GENERATORS.md)): three real OpenAPI→MCP generators on the
+live Petstore all emit menus **heavier than the naive baseline and 5–28× heavier than compact** —
+the ecosystem leaves the savings unclaimed, confirmed on real tools. **▶ R4 — end-to-end on a real
+live API** (`[key]`): interface a real public API (live Swagger Petstore) via real FastMCP, real
+tasks, live matrix on a real model — closes the pet-zoo toy gap. Say "continue LAP" to run R4.
+(Order: R4 → R3 → R7 → R5 → R6 → R8.) A key-free **backlog** remains below.
 
 ## Sources captured for Stage 1 (so it can be done without re-searching)
 
