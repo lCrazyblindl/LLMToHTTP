@@ -209,8 +209,23 @@ candidates: [`docs/REAL-TOOLS.md`](docs/REAL-TOOLS.md).
   schema is ~4.2M faithful tokens, and since *every* tool's full definition (deferred or not) must
   still be sent in the request, even `defer_loading` can't get an oversized corpus under a model's
   context window (Haiku 4.5: 200K) — a real, useful limit, not just a documented one.  `[key]`
-- [ ] **▶ R6 — Real code-execution head-to-head.** Anthropic's **real** code-execution (and/or
-  `mcp-compressor`) vs our sandbox `code_exec` on real tasks. _Done: real-vs-ours row._  `[key + beta]`
+- [x] **R6 — Real code-execution head-to-head.** Done, no beta header for the tool itself (only
+  Files API needs `betas=["files-api-2025-04-14"]`) —
+  [`experiments/code_exec_real.py`](experiments/code_exec_real.py) →
+  [`docs/CODE-EXEC.md`](docs/CODE-EXEC.md). Used `code_execution_20250825` (the version Haiku 4.5
+  supports) on the exact task Stage 15 already validated, so the new real number sits beside
+  already-real naive (6121 tok) and our own `code_exec` (1636 tok) numbers. **A genuinely humbling,
+  honest result:** real code-execution totaled **15613 tokens** — *heavier* than both. The
+  content-block trace shows why: the model **viewed the uploaded file first** (re-entering the raw
+  data into context, same as a naive fetch), then needed a retry to get the right path. This is a
+  real, structural finding: **Tool Search's saving is enforced by the server** (`defer_loading`
+  worked regardless of model behavior, R5) while **code-execution's saving is only behavioral** —
+  it holds only if the model's own code never prints the raw data; our sandbox enforces that
+  structurally (only `result` can leave the subprocess), real code-execution doesn't. Caveat: k=1,
+  one model, one task — noisy, not a claim that real code-execution is inherently worse.  `[key]`
+  Neither sandbox can call a *live* external API (no internet in Anthropic's container; ours is
+  hard-wired to an in-process client) — a live-API-backed comparison is out of scope, would need
+  its own security review to extend our sandbox's network access.
 - [x] **R7 — Envelope-aware bucket C.** Done: `lap/estimate.py` detects a list wrapped in an
   envelope object (`_find_envelope_key` — Stripe/JSON:API `{"data":[...]}`, k8s `{"items":[...]}`,
   OData `{"value":[...]}`, preferring conventional names deterministically) and scales it to a
@@ -219,10 +234,13 @@ candidates: [`docs/REAL-TOOLS.md`](docs/REAL-TOOLS.md).
   changed, several substantially (Kubernetes 1303→**7613**, Stripe 1588→**15868**, DigitalOcean
   616→**12244**, Notion 412→**6118**) — the previous numbers were undercounting real, enveloped
   responses. +4 tests (29 passing).  `[no key]`
-- [ ] **R8 — Reframe the story honestly.** README/profile/LANDSCAPE: our variants = principle in
-  control; real-tool track = holds in practice; keep "ours vs real" explicit. _Done: docs updated._  `[no key]`
+- [ ] **▶ R8 — Reframe the story honestly.** README/profile/LANDSCAPE: our variants = principle in
+  control; real-tool track = holds in practice (mostly — R6 found a real counter-example); keep
+  "ours vs real" explicit and note where the real tools *didn't* clearly win (R6). _Done: docs
+  updated._  `[no key]`
 
-Recommended order: **R1 → R2 → R4 → R3 → R7 → R5 → R6 → R8**.
+Recommended order: **R1 → R2 → R4 → R3 → R7 → R5 → R6 → R8**. R1–R7 all done; only R8 (a
+docs-only pass, no key needed) remains to close out v0.4's numbered stages.
 
 ### Further backlog (unscheduled, key-free)
 **Shipped after the v0.3 stages:** the LAP rules as a **Spectral ruleset**
@@ -260,10 +278,17 @@ scale** (live DigitalOcean, 290 ops: 4789 vs 50617 tokens, same schemas, only `d
 differs) but **costs more than compact at small scale** (live Petstore, 19 ops) — Anthropic's own
 "10+ tools" guidance, confirmed empirically both ways; also found `count_tokens` rejects server
 tools outright, and that Kubernetes (4.2M naive tokens) is too large for any model's context window
-even with `defer_loading` (every tool's full definition still ships in the request). **▶ R6 — real
-code-execution head-to-head** (`[key + beta]`): Anthropic's real code-execution tool vs our sandbox
-`code_exec` on real tasks. Say "continue LAP" to run R6. (Order: R6 → R8.) A key-free **backlog**
-remains below.
+even with `defer_loading` (every tool's full definition still ships in the request). **R6** — real
+code-execution (GA, no beta for the tool itself) vs our sandbox `code_exec`
+([`docs/CODE-EXEC.md`](docs/CODE-EXEC.md)): a genuinely humbling result — real code-execution
+totaled **15613 tokens**, *heavier* than both naive (6121) and ours (1636), because the model
+**viewed the uploaded file first** (re-entering the raw data into context) before writing the
+counting code. Real finding: Tool Search's saving is *structural* (server-enforced, R5), but
+code-execution's is only *behavioral* (holds only if the model's own code never prints the raw
+data) — our sandbox enforces that structurally, real code-execution doesn't. **All of R1–R7 are
+now done. ▶ R8 — reframe the story honestly** (`[no key]`): update README/profile/LANDSCAPE so
+"real tools mostly leave savings on the table" also notes R6's counter-example. Say "continue LAP"
+to run R8 (the last v0.4-numbered stage). A key-free **backlog** remains below regardless.
 
 ## Sources captured for Stage 1 (so it can be done without re-searching)
 
