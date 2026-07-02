@@ -4,6 +4,13 @@ All notable changes to **lap** (PyPI package `lap-score`) are recorded here.
 Format follows [Keep a Changelog](https://keepachangelog.com/); loose semantic
 versioning while pre-1.0.
 
+## [Unreleased]
+
+### Added
+- **`lap score --diff <before> <after>`** — compare two versions of a spec: the menu (bucket A)
+  token delta per interface form, plus which LAP lint findings were newly introduced or fixed.
+  `--max-growth` turns it into a CI gate ("did this PR make the API worse for agents?").
+
 ## [0.3.0] — 2026-06-30
 
 First public release of the full toolkit: a **scorer**, a **linter**, the **LAP

@@ -221,6 +221,34 @@ def test_lint_filter_ignored(spec):
     assert all(f.rule != "R2" for f in filtered) and len(filtered) < len(findings)
 
 
+# --- score.diff (v0.5 S4) -----------------------------------------------------
+def test_diff_same_spec_is_all_zero(spec):
+    res = score_mod.diff(spec, spec)
+    assert res["before_operations"] == res["after_operations"] == 6
+    assert all(f["delta"] == 0 and f["pct"] == 0 for f in res["forms"])
+    assert res["findings_added"] == [] and res["findings_removed"] == []
+
+
+def test_diff_growth_and_findings(gnarly, spec):
+    res = score_mod.diff(gnarly, spec)  # gnarly (3 ops) -> bookstore (6 ops): grows
+    assert res["before_operations"] == 3 and res["after_operations"] == 6
+    forms = {f["variant"]: f for f in res["forms"]}
+    assert forms["openapi_full"]["delta"] > 0
+    assert forms["compact_sig"]["after"] == score_mod.score(spec)["compact_sig"]
+    # bookstore introduces write ops gnarly lacks -> new W1 findings; gnarly's
+    # pets endpoints (absent from bookstore) drop out -> removed findings.
+    added_rules = {f["rule"] for f in res["findings_added"]}
+    removed_where = {f["where"] for f in res["findings_removed"]}
+    assert "W1" in added_rules
+    assert any("pets" in w for w in removed_where)
+
+
+def test_diff_reverse_is_shrinkage(gnarly, spec):
+    res = score_mod.diff(spec, gnarly)  # bookstore -> gnarly: shrinks
+    forms = {f["variant"]: f for f in res["forms"]}
+    assert all(f["delta"] < 0 for f in forms.values())
+
+
 # --- tool_search collapses bucket A at scale (Stage 11) ---------------------
 def _big_spec(n: int) -> dict:
     paths = {

@@ -65,12 +65,24 @@ beating even compact signatures at scale (Petstore: 1740 → 207, −88%).
   endpoint; tool defs counted via the real `tools=` parameter). Without it, a GPT-style
   `tiktoken` approximation — absolute numbers approximate, **relative ordering robust**.
 
+## Diff mode
+
+`lap score --diff <before> <after>` compares two versions of a spec instead of scoring one —
+"did this PR make the API worse for agents?" Reports the menu token delta per form, plus which
+LAP lint findings were newly introduced or fixed:
+
+```bash
+lap score --diff old_openapi.json new_openapi.json
+lap score --diff old_openapi.json new_openapi.json --gate-form compact_sig --max-growth 500
+```
+
 ## CI gate
 
 `--json` makes both commands machine-readable; thresholds set the exit code so LAP can fail a build:
 
 ```bash
 lap score openapi.json --gate-form compact_sig --max-menu-tokens 800   # exit 1 if the menu is too heavy
+lap score --diff old.json new.json --gate-form compact_sig --max-growth 500  # exit 1 if the menu grew too much
 lap lint  openapi.json --fail-on warn                                  # exit 1 on any warning
 lap lint  openapi.json --ignore R2,A1                                  # suppress rules (or a ./.lapignore file)
 ```

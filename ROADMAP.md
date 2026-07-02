@@ -294,10 +294,16 @@ Post-release (0.3.0 is live on PyPI + GitHub). Same stop/resume model. `[key]` =
   bug the expansion surfaced: negative `save_search`/`save_compact` percentages rendered as
   `+-51%` (double sign) in the table; added a `_signed()` helper. Updated README's leaderboard
   sample table/count/totals.  `[no key]`
-- [ ] **▶ S4 — `lap score before after` diff mode.** Score two versions of a spec and report the
-  delta (menu tokens, new/removed rule violations) — a natural CI use case ("did this PR make the
-  API worse for agents?"). _Done: `lap score --diff <before> <after>` (or similar), + tests._  `[no key]`
-- [ ] **S5 — estimate-C realism.** Use schema `examples` where present instead of bare-type
+- [x] **S4 — `lap score before after` diff mode.** Done. Added `score.diff(before, after)`:
+  menu (bucket A) token delta per interface form (`openapi_full`/`compact_sig`/`numbered`/
+  `tool_search`), plus which LAP lint findings were newly introduced or fixed — matched by
+  `(rule, where)` so wording changes don't count as a different finding. Wired into the CLI as
+  `lap score --diff <before> <after>` (human + `--json`), and a CI gate `--max-growth` (reuses
+  `--gate-form`; exit 1 if that form's menu grew by more than N tokens). +3 tests (32 passing).
+  This is real, shipped-package code (not just docs/experiments) — added an `[Unreleased]`
+  section to `CHANGELOG.md` for it since 0.3.0 is already tagged. Updated `lap/README.md`.
+  `[no key]`
+- [ ] **▶ S5 — estimate-C realism.** Use schema `examples` where present instead of bare-type
   placeholders; make placeholder string length configurable. Tightens the existing structural
   lower bound closer to real payload sizes. _Done: fix + tests, leaderboard regenerated._  `[no key]`
 - [ ] **S6 — Broader validation matrix.** Extend Stage 15(b)'s live success-rate matrix: add
@@ -341,8 +347,11 @@ scale amplifies the win (+12% small server, +67% big server, our own tokenizer),
 cross-check discrepancy surfaced — the tool's own self-reported percentage disagreed with us on
 the small server. **v0.5 S3 done** — leaderboard expanded 20 → 50 real APIs (10.4M naive tokens
 total, +80%/+82% avg saved); also caught and fixed a cosmetic double-sign bug the expansion
-surfaced. **▶ v0.5 S4** (`lap score before after` diff mode) is the current stage; order after:
-S4 → S5 → S6 → S7 → S8. Say "continue LAP" to keep going once a stage
+surfaced. **v0.5 S4 done** — `lap score --diff <before> <after>`: real, shipped-package code
+(menu-token delta per form + added/removed lint findings), a `--max-growth` CI gate, +3 tests;
+first v0.5 change to actually land in `lap/`, tracked in `CHANGELOG.md`'s new `[Unreleased]`
+section. **▶ v0.5 S5** (estimate-C realism via schema `examples`) is the current stage; order
+after: S5 → S6 → S7 → S8. Say "continue LAP" to keep going once a stage
 completes. v0.4 pivoted the benchmark from our own interface variants to real third-party
 artifacts —
 real generators, a real live API, real servers, real Anthropic features — and found the compact/
