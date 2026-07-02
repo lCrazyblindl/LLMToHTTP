@@ -54,12 +54,14 @@ is attacking both, hard.
 - **We didn't just cite these — we tested Anthropic's own two live** (v0.4 R5/R6, real API calls,
   not synthetic): **Tool Search held up** (a real ~90% saving on a real 290-operation API,
   `docs/TOOL-SEARCH.md`) — the vendor number roughly confirmed, and *server-enforced* regardless of
-  the calling model's behavior. **Code-execution did not, on one run** (`docs/CODE-EXEC.md`): it
-  cost *more* tokens than both the naive baseline and our own hand-rolled sandbox, because the
-  model viewed the raw data before writing code to avoid reprinting it. Headline vendor numbers are
-  usually best-case; whether they hold depends on whether the saving is structural (the server
-  enforces it) or behavioral (it only holds if the calling agent cooperates) — see the profile's
-  D2 vs X1 for the general rule this suggests.
+  the calling model's behavior. **Code-execution did not, and repeating it 5× (v0.5 S1) confirmed
+  this was a pattern, not noise** (`docs/CODE-EXEC.md`): **every one of 5 runs** cost *more* tokens
+  than both the naive baseline and our own hand-rolled sandbox, because the model consistently
+  needed 2-4 execution attempts to get the sandboxed file path right — each retry re-sends the
+  growing turn history. Headline vendor numbers are usually best-case; whether they hold depends on
+  whether the saving is structural (the server enforces it) or behavioral (it only holds if the
+  calling agent cooperates, and doesn't make a mistake) — see the profile's D2 vs X1 for the
+  general rule this suggests.
 
 ### 6. Token-efficiency tooling — the closest neighbors to LAP
 

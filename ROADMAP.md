@@ -260,12 +260,19 @@ Recommended order: **R1 → R2 → R4 → R3 → R7 → R5 → R6 → R8**. **Al
 Post-release (0.3.0 is live on PyPI + GitHub). Same stop/resume model. `[key]` = needs
 `ANTHROPIC_API_KEY`; `[no key]` = doable without one.
 
-- [ ] **▶ S1 — Re-run R6 (code-execution) with repeats.** R6 ran k=1 and found real
-  code-execution *heavier* than naive and our own sandbox — flagged honestly as "noisy, not a
-  claim it's inherently worse." Re-run `experiments/code_exec_real.py` with k=3–5 to see whether
-  that was a one-off (the model happened to view the file first) or a real pattern. _Done: a
-  success/token table over k repeats, not one run._  `[key]`
-- [ ] **S2 — Test `mcp-compressor` (Atlassian), a third real compression mechanism.** Identified
+- [x] **S1 — Re-run R6 (code-execution) with repeats.** Done. Re-ran
+  `experiments/code_exec_real.py` with k=5 against Claude Haiku 4.5, and instrumented each run
+  for exec-attempt count + failed-attempt detection (not just "did it view the file", which
+  turned out not to be the real driver). **Result: not a fluke — a confirmed pattern.** All 5/5
+  repeats came in above the naive baseline (mean 17863 vs. naive 6121, ours 1636), 5/5 correct.
+  The verified mechanism: every run needed 2–4 `bash_code_execution` attempts because the model
+  guessed the wrong sandboxed file path on its first try and had to retry — each retry re-sends
+  the growing turn history, which is what inflates billed tokens. Our own sandbox has no
+  equivalent failure mode (an injected client object can't be given a wrong path). Updated
+  `docs/CODE-EXEC.md`, `profile/llm-api-profile.md` (rule X1), `docs/LANDSCAPE.md` §5, and
+  `README.md`'s real-tool table to state "5/5, confirmed pattern" instead of "k=1, noisy."
+  `[key]`
+- [ ] **▶ S2 — Test `mcp-compressor` (Atlassian), a third real compression mechanism.** Identified
   in R1's inventory (`docs/REAL-TOOLS.md`) as the best real OSS optimizer candidate but never
   actually run. Wrap one of R3's real reference servers (git/fetch/time) with it and compare the
   compressed menu against the server's raw advertised menu — a third real data point on
@@ -313,11 +320,13 @@ DigitalOcean/pet-zoo.
 PROGRESS.** `lap-score` 0.3.0 is live on PyPI (https://pypi.org/project/lap-score/0.3.0/,
 verified via a fresh-venv install) and the GitHub release is published
 (https://github.com/lCrazyblindl/lap/releases/tag/v0.3.0, both dist files attached). The only
-release step left is optional and UI-only: listing the Action on the GitHub Marketplace. **▶ v0.5
-S1** (re-run R6's code-execution comparison with k=3–5 repeats — was the "heavier than naive"
-result a one-off or a pattern?) is the current stage; order after: S1 → S2 → S3 → S4 → S5 → S6 →
-S7 → S8. Say "continue LAP" to keep going once a stage completes. v0.4 pivoted the benchmark from
-our own interface variants to real third-party artifacts —
+release step left is optional and UI-only: listing the Action on the GitHub Marketplace. **v0.5
+S1 done** — repeating R6's code-execution comparison 5× confirmed "heavier than naive" is a real
+pattern (5/5), driven by retried execution attempts from wrong sandboxed file-path guesses, not
+noise; docs + the profile's X1 rule updated accordingly. **▶ v0.5 S2** (test `mcp-compressor`, a
+real OSS optimizer, as a third real compression data point) is the current stage; order after:
+S2 → S3 → S4 → S5 → S6 → S7 → S8. Say "continue LAP" to keep going once a stage completes. v0.4
+pivoted the benchmark from our own interface variants to real third-party artifacts —
 real generators, a real live API, real servers, real Anthropic features — and found the compact/
 efficient story holds **most, not all**, of the time:
 
