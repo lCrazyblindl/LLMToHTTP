@@ -283,10 +283,18 @@ Post-release (0.3.0 is live on PyPI + GitHub). Same stop/resume model. `[key]` =
   modest, saving (+12%). Flagged honestly rather than smoothed over (likely a different internal
   metric, e.g. raw bytes vs our tokenizer — not confirmed). Wrote `docs/MCP-COMPRESSOR.md`;
   updated `docs/REAL-TOOLS.md` and README's real-tool table/links.  `[no key]`
-- [ ] **▶ S3 — Leaderboard expansion, 20 → 40+ real APIs.** Mechanical extension of
-  `experiments/leaderboard.py`'s `CURATED` list; richer public dataset at near-zero cost (bucket
-  A is free). _Done: `docs/LEADERBOARD.md` regenerated with ≥40 APIs._  `[no key]`
-- [ ] **S4 — `lap score before after` diff mode.** Score two versions of a spec and report the
+- [x] **S3 — Leaderboard expansion, 20 → 40+ real APIs.** Done. Extended
+  `experiments/leaderboard.py`'s `CURATED` list to 50 candidates, each verified present in
+  APIs.guru's live directory first (dropped unresolvable guesses rather than leaving silent
+  skips); all 50 scored cleanly. New heaviest entry: Xero Accounting (4,039,605 naive tokens,
+  even heavier than Kubernetes). Totals across 50: **10,426,548 naive tokens**; `compact_sig`
+  **+80%** avg saved, `tool_search` **+82%** avg (and, now visible at this scale, genuinely
+  *negative* on 1-3-op APIs like NASA APOD/ClickUp/1Password — tool_search costing more than
+  naive — a live illustration of the "not worth it below ~10 tools" caveat). Fixed a cosmetic
+  bug the expansion surfaced: negative `save_search`/`save_compact` percentages rendered as
+  `+-51%` (double sign) in the table; added a `_signed()` helper. Updated README's leaderboard
+  sample table/count/totals.  `[no key]`
+- [ ] **▶ S4 — `lap score before after` diff mode.** Score two versions of a spec and report the
   delta (menu tokens, new/removed rule violations) — a natural CI use case ("did this PR make the
   API worse for agents?"). _Done: `lap score --diff <before> <after>` (or similar), + tests._  `[no key]`
 - [ ] **S5 — estimate-C realism.** Use schema `examples` where present instead of bare-type
@@ -331,8 +339,10 @@ pattern (5/5), driven by retried execution attempts from wrong sandboxed file-pa
 noise. **v0.5 S2 done** — real `mcp-compressor` (Atlassian) on 2 real MCP servers at 2 scales:
 scale amplifies the win (+12% small server, +67% big server, our own tokenizer), and a genuine
 cross-check discrepancy surfaced — the tool's own self-reported percentage disagreed with us on
-the small server. **▶ v0.5 S3** (leaderboard expansion, 20 → 40+ real APIs) is the current stage;
-order after: S3 → S4 → S5 → S6 → S7 → S8. Say "continue LAP" to keep going once a stage
+the small server. **v0.5 S3 done** — leaderboard expanded 20 → 50 real APIs (10.4M naive tokens
+total, +80%/+82% avg saved); also caught and fixed a cosmetic double-sign bug the expansion
+surfaced. **▶ v0.5 S4** (`lap score before after` diff mode) is the current stage; order after:
+S4 → S5 → S6 → S7 → S8. Say "continue LAP" to keep going once a stage
 completes. v0.4 pivoted the benchmark from our own interface variants to real third-party
 artifacts —
 real generators, a real live API, real servers, real Anthropic features — and found the compact/

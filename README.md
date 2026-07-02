@@ -66,17 +66,17 @@ This is the part that makes the numbers worth trusting: instead of only comparin
 
 ### The leaderboard
 
-[**`docs/LEADERBOARD.md`**](docs/LEADERBOARD.md) scores **20 real public APIs** — Kubernetes, EC2, Jira, Stripe, GitHub, OpenAI, Slack, Notion, and more — by what their naive agent menu costs today:
+[**`docs/LEADERBOARD.md`**](docs/LEADERBOARD.md) scores **50 real public APIs** — Kubernetes, EC2, Jira, Stripe, GitHub, OpenAI, Slack, Notion, and more — by what their naive agent menu costs today:
 
 | API | naive menu (bucket A) | LAP compact | saved |
 | --- | ---: | ---: | ---: |
+| Xero Accounting | 4,039,605 | 7,794 | **+99%** |
 | Kubernetes | 2,818,799 | 45,015 | **+98%** |
 | Amazon EC2 | 606,132 | 63,158 | **+90%** |
-| Jira Cloud | 345,552 | 17,996 | **+95%** |
-| Stripe | 231,586 | 32,860 | **+86%** |
-| _…16 more_ | | | |
+| Google Sheets | 492,618 | 1,483 | **+99%** |
+| _…46 more_ | | | |
 
-Across all 20, naive menus total **~4.9M tokens**; the compact form would cut **~86%** on average (the lazy `tool_search` form ~96%). None of these APIs ships a compact agent menu today — reproduce it with `python experiments/leaderboard.py`.
+Across all 50, naive menus total **~10.4M tokens**; the compact form would cut **~80%** on average (the lazy `tool_search` form ~82% — it wins most where operation counts are high, and can cost more than naive on tiny 1-3 op APIs, matching the profile's own "not worth it below ~10 tools" caveat). None of these APIs ships a compact agent menu today — reproduce it with `python experiments/leaderboard.py`.
 
 ---
 
@@ -187,7 +187,7 @@ It measures **bucket A** (the definitions/menu the model carries in context) and
 - [`lap/`](lap/README.md) — the standalone, pip-installable **toolkit** (`lap score`, `lap lint`). Start here for day-to-day use.
 - [`profile/`](profile/llm-api-profile.md) — the **LAP profile**: the conventions, with every rule backed by a measurement.
 - [`experiments/token-bench/`](experiments/token-bench/README.md) — the full A/B/C benchmark on a real FastAPI testbed ([`pet-zoo/`](pet-zoo/README.md)), 10 tasks across 5 categories, an optional live accuracy check.
-- [`docs/LEADERBOARD.md`](docs/LEADERBOARD.md) — 20 real public APIs ranked by agent-menu token cost. `experiments/leaderboard.py` regenerates it.
+- [`docs/LEADERBOARD.md`](docs/LEADERBOARD.md) — 50 real public APIs ranked by agent-menu token cost. `experiments/leaderboard.py` regenerates it.
 - [`docs/GENERATORS.md`](docs/GENERATORS.md) · [`docs/MCP-SERVERS.md`](docs/MCP-SERVERS.md) · [`docs/TOOL-SEARCH.md`](docs/TOOL-SEARCH.md) · [`docs/CODE-EXEC.md`](docs/CODE-EXEC.md) · [`docs/MCP-COMPRESSOR.md`](docs/MCP-COMPRESSOR.md) — the real-tool validation track: real generators, real MCP servers, two of Anthropic's real efficiency features, and a real third-party optimizer, tested live.
 - [`docs/LANDSCAPE.md`](docs/LANDSCAPE.md) — where LAP sits in the June-2026 agentic-web landscape (NLWeb, llms.txt, MCP gateways, the token-efficiency tools LAP builds on and credits), and what it deliberately doesn't rebuild.
 - [`spectral/`](spectral/README.md) — the LAP lint rules as a Spectral ruleset.

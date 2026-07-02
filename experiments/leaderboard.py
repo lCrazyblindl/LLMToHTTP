@@ -26,13 +26,23 @@ MAXBYTES = 16_000_000
 PAGE_SIZE = 20  # assumed items/page for the bucket-C (result-size) estimate
 
 # Well-known public APIs (resolved by substring against the APIs.guru directory).
+# v0.5 S3: expanded from the original 20-ish (v0.3/v0.4) to 40+ — every entry below was
+# verified present in APIs.guru's live directory before being added (unresolvable guesses
+# from the first expansion pass were dropped rather than left as silent "skip"s).
 CURATED = [
-    "stripe.com", "github.com", "slack.com", "twilio.com:twilio_api", "digitalocean.com",
-    "box.com", "asana.com", "gitlab.com", "atlassian.com:jira", "kubernetes",
-    "adyen.com:CheckoutService", "googleapis.com:calendar", "googleapis.com:gmail",
-    "amazonaws.com:ec2", "amazonaws.com:dynamodb", "azure.com:compute", "spotify.com",
-    "notion.com", "discord.com", "shopify.com", "sendgrid.com", "mailchimp.com",
-    "openai.com", "zoom.us", "bigcommerce.com",
+    "stripe.com", "github.com", "slack.com", "digitalocean.com", "box.com", "asana.com",
+    "gitlab.com", "atlassian.com:jira", "kubernetes", "adyen.com:CheckoutService",
+    "googleapis.com:calendar", "googleapis.com:gmail", "amazonaws.com:ec2",
+    "amazonaws.com:dynamodb", "azure.com:compute", "spotify.com", "notion.com",
+    "sendgrid.com", "openai.com", "zoom.us", "trello.com",
+    # v0.5 S3 additions
+    "amazonaws.com:s3", "amazonaws.com:lambda", "amazonaws.com:rds", "amazonaws.com:sns",
+    "amazonaws.com:sqs", "googleapis.com:drive", "googleapis.com:sheets",
+    "googleapis.com:youtube", "googleapis.com:firebase", "googleapis.com:bigquery",
+    "azure.com:storage", "azure.com:keyvault", "vimeo.com", "plaid.com", "nasa.gov",
+    "circleci.com", "docker.com", "linode.com", "clickup.com", "netlify.com", "vercel.com",
+    "bitbucket.org", "1password.com", "getpostman.com", "xero.com:xero_accounting",
+    "webflow.com", "launchdarkly.com", "gitea.io", "ably.io:platform",
 ]
 
 
@@ -54,6 +64,10 @@ def _pct(part: int, whole: int) -> int:
         return 0
     r = round(100 * (whole - part) / whole)
     return 99 if r >= 100 and part > 0 else r  # never imply "free" when tokens remain
+
+
+def _signed(pct: int) -> str:
+    return f"+{pct}%" if pct >= 0 else f"{pct}%"
 
 
 def main() -> None:
@@ -135,7 +149,7 @@ def main() -> None:
     for i, r in enumerate(rows, 1):
         lines.append(
             f"| {i} | {r['api']} | {r['provider']} | {r['ops']} | {r['full']} | {r['compact']} | "
-            f"+{r['save_compact']}% | {r['tool_search']} | +{r['save_search']}% | {r['c_max'] or '-'} |"
+            f"{_signed(r['save_compact'])} | {r['tool_search']} | {_signed(r['save_search'])} | {r['c_max'] or '-'} |"
         )
 
     if rows:
