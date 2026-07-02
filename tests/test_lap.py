@@ -205,6 +205,72 @@ def test_estimate_no_envelope_for_plain_object():
     assert kind == "object"
 
 
+# --- estimate-C realism: real examples + configurable string length (v0.5 S5) -
+def test_example_instance_prefers_real_example_over_placeholder():
+    from lap import estimate
+
+    schema = {"type": "object", "properties": {
+        "id": {"type": "integer"},
+        "bio": {"type": "string", "example": "A much longer real biography than any placeholder."},
+    }}
+    inst = estimate.example_instance({}, schema)
+    assert inst["bio"] == "A much longer real biography than any placeholder."
+    assert inst["id"] == 0  # untouched fields still get the synthetic placeholder
+
+
+def test_example_instance_supports_json_schema_examples_list():
+    from lap import estimate
+
+    schema = {"type": "string", "examples": ["real-example-value", "second"]}
+    assert estimate.example_instance({}, schema) == "real-example-value"
+
+
+def test_example_instance_string_len_is_configurable():
+    from lap import estimate
+
+    schema = {"type": "string"}
+    assert estimate.example_instance({}, schema, string_len=6) == "x" * 6
+    assert estimate.example_instance({}, schema, string_len=30) == "x" * 30
+
+
+def test_estimate_string_len_grows_the_bucket_c_estimate():
+    from lap import estimate
+
+    spec = {
+        "openapi": "3.0.0", "info": {"title": "Strings"},
+        "paths": {"/thing": {"get": {
+            "operationId": "getThing",
+            "responses": {"200": {"content": {"application/json": {"schema": {
+                "type": "object",
+                "properties": {"description": {"type": "string"}},
+            }}}}},
+        }}},
+    }
+    op = ir.operations(spec)[0]
+    _kind, _per, c_short = estimate.estimate(spec, op, page_size=20, string_len=6)
+    _kind, _per, c_long = estimate.estimate(spec, op, page_size=20, string_len=200)
+    assert c_long > c_short  # a longer un-exampled placeholder costs more tokens
+
+
+def test_estimate_real_example_wins_regardless_of_string_len():
+    from lap import estimate
+
+    spec = {
+        "openapi": "3.0.0", "info": {"title": "Exampled"},
+        "paths": {"/thing": {"get": {
+            "operationId": "getThing",
+            "responses": {"200": {"content": {"application/json": {"schema": {
+                "type": "object",
+                "properties": {"name": {"type": "string", "example": "Fixed Real Name"}},
+            }}}}},
+        }}},
+    }
+    op = ir.operations(spec)[0]
+    _kind, _per, c1 = estimate.estimate(spec, op, page_size=20, string_len=6)
+    _kind, _per, c2 = estimate.estimate(spec, op, page_size=20, string_len=200)
+    assert c1 == c2  # the real example ignores string_len entirely
+
+
 # --- --json / CI gate (Stage 10) --------------------------------------------
 def test_score_gather_shape(spec):
     from types import SimpleNamespace

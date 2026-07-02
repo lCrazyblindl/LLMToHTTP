@@ -94,8 +94,9 @@ def gather(spec: dict, args) -> dict:
     menu_list.append(("tool_search", a_cost["tool_search"], "2 lazy tools + name index"))
 
     ests = []
+    string_len = getattr(args, "string_len", 6)
     for op in ops:
-        kind, _per, est = estimate.estimate(spec, op, args.page_size)
+        kind, _per, est = estimate.estimate(spec, op, args.page_size, string_len)
         if kind != "void":
             ests.append({"where": f"{op.method} {op.path}", "kind": kind, "tokens": est})
     ests.sort(key=lambda e: e["tokens"], reverse=True)
@@ -203,6 +204,10 @@ def main() -> None:
     ap.add_argument("--no-mcp", action="store_true", help="skip the real-MCP (FastMCP) baseline row")
     ap.add_argument("--page-size", type=int, default=20,
                     help="assumed page size for the estimated result-size (bucket C)")
+    ap.add_argument("--string-len", type=int, default=6, dest="string_len",
+                    help="placeholder length for un-exampled string fields in the bucket-C "
+                    "estimate (default 6, same as the word 'string'); real example/examples "
+                    "values in the schema always win over this, regardless of setting")
     ap.add_argument("--json", action="store_true", help="emit machine-readable JSON")
     ap.add_argument("--gate-form", choices=["openapi_full", "compact_sig", "numbered", "tool_search"],
                     default="openapi_full", help="which menu form --max-menu-tokens/--max-growth checks")

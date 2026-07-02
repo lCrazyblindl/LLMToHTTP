@@ -10,6 +10,16 @@ versioning while pre-1.0.
 - **`lap score --diff <before> <after>`** — compare two versions of a spec: the menu (bucket A)
   token delta per interface form, plus which LAP lint findings were newly introduced or fixed.
   `--max-growth` turns it into a CI gate ("did this PR make the API worse for agents?").
+- **`--string-len`** on `lap score` — configurable placeholder length for un-exampled string
+  fields in the bucket-C estimate (default 6, unchanged).
+
+### Fixed
+- **Bucket-C estimate now prefers a schema's real `example`/`examples` value** over a synthetic
+  placeholder wherever present — real data an API author wrote down, so strictly more accurate
+  than a guess. Regenerated `docs/LEADERBOARD.md`: of 48 comparable rows, **41 grew, 1 shrank, 6
+  were unchanged** (no examples in those schemas); the total heaviest-result estimate across the
+  leaderboard rose ~41% (482,795 → 681,830 tokens) — the previous placeholder-only estimate was
+  undercounting real payload sizes wherever specs actually documented example values.
 
 ## [0.3.0] — 2026-06-30
 

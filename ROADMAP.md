@@ -303,10 +303,20 @@ Post-release (0.3.0 is live on PyPI + GitHub). Same stop/resume model. `[key]` =
   This is real, shipped-package code (not just docs/experiments) — added an `[Unreleased]`
   section to `CHANGELOG.md` for it since 0.3.0 is already tagged. Updated `lap/README.md`.
   `[no key]`
-- [ ] **▶ S5 — estimate-C realism.** Use schema `examples` where present instead of bare-type
-  placeholders; make placeholder string length configurable. Tightens the existing structural
-  lower bound closer to real payload sizes. _Done: fix + tests, leaderboard regenerated._  `[no key]`
-- [ ] **S6 — Broader validation matrix.** Extend Stage 15(b)'s live success-rate matrix: add
+- [x] **S5 — estimate-C realism.** Done. `example_instance()` now checks a schema for a real
+  `example` (OpenAPI 3.0) or `examples[0]` (JSON Schema 2020-12 / OpenAPI 3.1) value first,
+  before any synthetic placeholder or even `enum`/`allOf`/`oneOf` handling — real data an API
+  author wrote down beats a guess, unconditionally. The synthetic string placeholder's length is
+  now a `string_len` parameter (`estimate()`/`example_instance()`) and a CLI flag
+  (`lap score --string-len N`, default 6 = unchanged, since there's no universally "correct"
+  default). +5 tests (37 passing). **Real, substantial leaderboard impact**: of 48 comparable
+  rows, **41 grew, 1 shrank (EC2 - its `enum[0]` was longer than its real `example`), 6 were
+  unchanged** (no examples in those schemas); the leaderboard's total heaviest-result estimate
+  rose **~41%** (482,795 → 681,830 tokens) — the placeholder-only estimate had been undercounting
+  real payload sizes wherever specs actually documented example values. Regenerated
+  `docs/LEADERBOARD.md`, updated its methodology note, `CHANGELOG.md` `[Unreleased]`, and
+  `lap/README.md`.  `[no key]`
+- [ ] **▶ S6 — Broader validation matrix.** Extend Stage 15(b)'s live success-rate matrix: add
   Sonnet alongside Haiku, ≥2 tasks/category (reusing R16's grouped tasks), more repeats (k≈5).
   _Done: an expanded `validation.md`._  `[key]`
 - [ ] **S7 — CONTRIBUTING.md + issue templates.** Now that the repo is public and released,
@@ -350,8 +360,11 @@ total, +80%/+82% avg saved); also caught and fixed a cosmetic double-sign bug th
 surfaced. **v0.5 S4 done** — `lap score --diff <before> <after>`: real, shipped-package code
 (menu-token delta per form + added/removed lint findings), a `--max-growth` CI gate, +3 tests;
 first v0.5 change to actually land in `lap/`, tracked in `CHANGELOG.md`'s new `[Unreleased]`
-section. **▶ v0.5 S5** (estimate-C realism via schema `examples`) is the current stage; order
-after: S5 → S6 → S7 → S8. Say "continue LAP" to keep going once a stage
+section. **v0.5 S5 done** — bucket-C estimate now prefers real schema `example`/`examples` over
+synthetic placeholders, plus a configurable `--string-len`; leaderboard's total heaviest-result
+estimate rose ~41% (482,795 → 681,830 tokens) once real examples were honored. **▶ v0.5 S6**
+(broader validation matrix: +Sonnet, more repeats) is the current stage; order after: S6 → S7 →
+S8. Say "continue LAP" to keep going once a stage
 completes. v0.4 pivoted the benchmark from our own interface variants to real third-party
 artifacts —
 real generators, a real live API, real servers, real Anthropic features — and found the compact/
