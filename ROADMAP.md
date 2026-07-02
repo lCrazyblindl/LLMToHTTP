@@ -255,26 +255,69 @@ candidates: [`docs/REAL-TOOLS.md`](docs/REAL-TOOLS.md).
 Recommended order: **R1 → R2 → R4 → R3 → R7 → R5 → R6 → R8**. **All of v0.4's numbered stages
 (R1–R8) are now done.**
 
+## Stages — v0.5 (deepen the real-tool track; finish the toolkit backlog)
+
+Post-release (0.3.0 is live on PyPI + GitHub). Same stop/resume model. `[key]` = needs
+`ANTHROPIC_API_KEY`; `[no key]` = doable without one.
+
+- [ ] **▶ S1 — Re-run R6 (code-execution) with repeats.** R6 ran k=1 and found real
+  code-execution *heavier* than naive and our own sandbox — flagged honestly as "noisy, not a
+  claim it's inherently worse." Re-run `experiments/code_exec_real.py` with k=3–5 to see whether
+  that was a one-off (the model happened to view the file first) or a real pattern. _Done: a
+  success/token table over k repeats, not one run._  `[key]`
+- [ ] **S2 — Test `mcp-compressor` (Atlassian), a third real compression mechanism.** Identified
+  in R1's inventory (`docs/REAL-TOOLS.md`) as the best real OSS optimizer candidate but never
+  actually run. Wrap one of R3's real reference servers (git/fetch/time) with it and compare the
+  compressed menu against the server's raw advertised menu — a third real data point on
+  "structural vs behavioral" savings, alongside Tool Search (R5) and code-execution (R6).
+  _Done: a real before/after row, written up like R2/R3._  `[no key]`
+- [ ] **S3 — Leaderboard expansion, 20 → 40+ real APIs.** Mechanical extension of
+  `experiments/leaderboard.py`'s `CURATED` list; richer public dataset at near-zero cost (bucket
+  A is free). _Done: `docs/LEADERBOARD.md` regenerated with ≥40 APIs._  `[no key]`
+- [ ] **S4 — `lap score before after` diff mode.** Score two versions of a spec and report the
+  delta (menu tokens, new/removed rule violations) — a natural CI use case ("did this PR make the
+  API worse for agents?"). _Done: `lap score --diff <before> <after>` (or similar), + tests._  `[no key]`
+- [ ] **S5 — estimate-C realism.** Use schema `examples` where present instead of bare-type
+  placeholders; make placeholder string length configurable. Tightens the existing structural
+  lower bound closer to real payload sizes. _Done: fix + tests, leaderboard regenerated._  `[no key]`
+- [ ] **S6 — Broader validation matrix.** Extend Stage 15(b)'s live success-rate matrix: add
+  Sonnet alongside Haiku, ≥2 tasks/category (reusing R16's grouped tasks), more repeats (k≈5).
+  _Done: an expanded `validation.md`._  `[key]`
+- [ ] **S7 — CONTRIBUTING.md + issue templates.** Now that the repo is public and released,
+  outside issues/PRs are actually possible — a short contributing guide + a bug-report /
+  feature-request issue template. _Done: `CONTRIBUTING.md` + `.github/ISSUE_TEMPLATE/`._  `[no key]`
+- [ ] **S8 — Profile L0 "be-discoverable" rule + NLWeb endpoint scoring.** Add a lightweight LAP
+  rule for exposing `llms.txt` / `.well-known` / an NLWeb `/mcp` endpoint, and extend `lap score
+  --mcp-url` (or a sibling flag) to also score a live NLWeb `/ask` endpoint — ties the real-tool
+  track to another real ecosystem player. _Done: rule + one real NLWeb site scored._  `[no key]`
+
+Recommended order: **S1 → S2 → S3 → S4 → S5 → S6 → S7 → S8** (roughly: cheapest real-tool
+follow-ups first, then toolkit features, then the more involved validation/housekeeping work).
+
 ### Further backlog (unscheduled, key-free)
 **Shipped after the v0.3 stages:** the LAP rules as a **Spectral ruleset**
 ([`spectral/`](spectral/README.md), executed + asserted in CI, verified locally on Spectral
 6.11.0 = same 15 findings as `lap lint`); the leaderboard gained a **bucket-C** (heaviest
 result) column. _(The two honest gaps that surfaced — real-API end-to-end validation, and
 envelope-aware bucket C — became v0.4 **R4** and **R7**, both now done.)_
-Still open: a short **Related work / credit** note in the README, caching economics
-(first-call vs amortized A), bucket-B estimate, NLWeb endpoint scoring, lint auto-fix (emit a
-compact manifest), `lap score before after` diff mode, profile L0 "be-discoverable" rule
-(llms.txt / .well-known / NLWeb), CONTRIBUTING + issue templates.
+Still open, unscheduled: a short **Related work / credit** note in the README; caching economics
+(first-call vs amortized A); a bucket-B estimate in `lap score` (currently only measured in
+token-bench); lint auto-fix (emit a suggested compact manifest); GitHub's official MCP server
+(~94 tools/~17.6k, cited in R3 but never scored — Docker daemon was down; revisit if it comes
+up); a second real API for Tool Search/code-execution to check R5/R6 generalize beyond
+DigitalOcean/pet-zoo.
 
 ## Status
 
-**v0.3 complete (stages 0–19); v0.4 COMPLETE (R1–R8); v0.3.0 FULLY RELEASED 2026-07-01 —
-"measure real tools, not our own."** `lap-score` 0.3.0 is live on PyPI
-(https://pypi.org/project/lap-score/0.3.0/, verified via a fresh-venv install) and the GitHub
-release is published (https://github.com/lCrazyblindl/lap/releases/tag/v0.3.0, both dist files
-attached). The only thing left is optional and UI-only: listing the Action on the GitHub
-Marketplace. v0.4 pivoted the benchmark from our own interface variants to real third-party
-artifacts —
+**v0.3 complete (stages 0–19); v0.4 COMPLETE (R1–R8); v0.3.0 FULLY RELEASED 2026-07-01; v0.5 IN
+PROGRESS.** `lap-score` 0.3.0 is live on PyPI (https://pypi.org/project/lap-score/0.3.0/,
+verified via a fresh-venv install) and the GitHub release is published
+(https://github.com/lCrazyblindl/lap/releases/tag/v0.3.0, both dist files attached). The only
+release step left is optional and UI-only: listing the Action on the GitHub Marketplace. **▶ v0.5
+S1** (re-run R6's code-execution comparison with k=3–5 repeats — was the "heavier than naive"
+result a one-off or a pattern?) is the current stage; order after: S1 → S2 → S3 → S4 → S5 → S6 →
+S7 → S8. Say "continue LAP" to keep going once a stage completes. v0.4 pivoted the benchmark from
+our own interface variants to real third-party artifacts —
 real generators, a real live API, real servers, real Anthropic features — and found the compact/
 efficient story holds **most, not all**, of the time:
 
